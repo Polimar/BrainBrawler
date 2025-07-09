@@ -1,0 +1,461 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  username      String    @unique
+  accountType   AccountType @default(FREE)
+  isEmailVerified Boolean @default(false)
+  premiumExpiresAt DateTime?
+  isOnline      Boolean   @default(false)
+  lastSeen      DateTime  @default(now())
+  
+  // Game statistics
+  totalGamesPlayed Int @default(0)
+  totalGamesWon    Int @default(0)
+  totalScore       Int @default(0)
+  averageScore     Float @default(0)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  refreshTokens RefreshToken[]
+  ownedQuestionSets QuestionSet[] @relation("QuestionSetOwner")
+  gameParticipants GameParticipant[]
+  createdGames  Game[] @relation("GameCreator")
+  
+  // Friendship relations
+  sentFriendRequests     FriendRequest[] @relation("SentRequests")
+  receivedFriendRequests FriendRequest[] @relation("ReceivedRequests")
+  friendships1           Friendship[]    @relation("User1Friendships")
+  friendships2           Friendship[]    @relation("User2Friendships")
+  
+  // Premium features
+  llmConfigs    LLMConfig[]
+  
+  // Avatar system
+  selectedAvatarId String?
+  selectedAvatar   Avatar? @relation("SelectedAvatar", fields: [selectedAvatarId], references: [id])
+  ownedAvatars     UserAvatar[]
+  avatarCustomizations AvatarCustomization[]
+  
+  // Ads tracking
+  adImpressions AdImpression[]
+  
+  // In-app purchases
+  purchases     Purchase[]
+  cart          CartItem[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model QuestionSet {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  category    String
+  difficulty  Difficulty
+  isPublic    Boolean    @default(true)
+  isPremium   Boolean    @default(false)
+  ownerId     String?    // null for system question sets
+  questions   Question[]
+  games       Game[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  owner User? @relation("QuestionSetOwner", fields: [ownerId], references: [id])
+  
+  @@index([category, difficulty])
+  @@index([isPublic, isPremium])
+}
+
+model Question {
+  id            String      @id @default(cuid())
+  questionSetId String
+  questionSet   QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
+  text          String
+  options       Json        // Array of {id, text}
+  correctAnswer String
+  timeLimit     Int         @default(30)
+  points        Int         @default(100)
+  order         Int
+  explanation   String?     // Optional explanation for the answer
+  
+  @@index([questionSetId, order])
+}
+
+model Game {
+  id             String       @id @default(cuid())
+  code           String       @unique
+  questionSetId  String
+  questionSet    QuestionSet  @relation(fields: [questionSetId], references: [id])
+  creatorId      String
+  creator        User         @relation("GameCreator", fields: [creatorId], references: [id])
+  state          GameState    @default(WAITING)
+  
+  // Game configuration
+  maxPlayers     Int          @default(8)
+  totalQuestions Int          @default(10)
+  timePerQuestion Int         @default(30)
+  
+  // Game progress
+  currentQuestion Int         @default(0)
+  
+  // P2P and WebRTC support
+  isP2P          Boolean      @default(true)
+  currentHostId  String?      // Current P2P host
+  hostElections  HostElection[]
+  
+  // Privacy settings
+  isPrivate      Boolean      @default(false)
+  inviteCode     String?      @unique
+  
+  // Game statistics and final data
+  finalStats     Json?        // Final game statistics from P2P sync
+  
+  // Participants
+  participants   GameParticipant[]
+  
+  // Timestamps
+  createdAt      DateTime     @default(now())
+  startedAt      DateTime?
+  endedAt        DateTime?
+  
+  @@index([state, isPrivate])
+  @@index([code])
+}
+
+model GameParticipant {
+  id        String   @id @default(cuid())
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Game role and status
+  isHost    Boolean  @default(false)
+  isReady   Boolean  @default(false)
+  
+  // Game results
+  score     Int      @default(0)
+  rank      Int?     // Final ranking in the game
+  
+  // P2P connection info
+  peerId    String?  // WebRTC peer ID
+  connectionQuality String? // 'excellent', 'good', 'poor', 'disconnected'
+  latency   Int?     // Connection latency in ms
+  
+  // Timestamps
+  joinedAt  DateTime @default(now())
+  completedAt DateTime?
+  
+  @@unique([gameId, userId])
+  @@index([gameId, isHost])
+}
+
+// Host election tracking for P2P games
+model HostElection {
+  id            String   @id @default(cuid())
+  gameId        String
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  
+  previousHostId String?  // Previous host (if any)
+  newHostId     String   // Newly elected host
+  electionReason String  // 'disconnect', 'timeout', 'manual'
+  
+  // Election metadata
+  candidateIds  Json     // Array of candidate user IDs
+  votes         Json?    // Voting data if applicable
+  
+  electedAt     DateTime @default(now())
+  
+  @@index([gameId, electedAt])
+}
+
+model FriendRequest {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     FriendRequestStatus @default(PENDING)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  sender     User @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  @@unique([senderId, receiverId])
+  @@index([receiverId, status])
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  user1Id   String
+  user2Id   String
+  createdAt DateTime @default(now())
+  
+  user1 User @relation("User1Friendships", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2 User @relation("User2Friendships", fields: [user2Id], references: [id], onDelete: Cascade)
+  
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+}
+
+model LLMConfig {
+  id       String @id @default(cuid())
+  userId   String
+  provider LLMProvider
+  apiKey   String // Encrypted
+  endpoint String?
+  model    String?
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, provider])
+}
+
+model AdImpression {
+  id        String   @id @default(cuid())
+  userId    String
+  adType    AdType
+  adUnit    String
+  clicked   Boolean  @default(false)
+  revenue   Decimal? @db.Decimal(10,4)
+  createdAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, createdAt])
+}
+
+model Avatar {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  category    AvatarCategory
+  imageUrl    String
+  animationUrl String?
+  isPremium   Boolean @default(false)
+  price       Decimal? @db.Decimal(10,2)
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  selectedByUsers User[] @relation("SelectedAvatar")
+  ownedByUsers    UserAvatar[]
+  customizations  AvatarCustomization[]
+  shopItems       ShopItem[]
+  
+  @@index([category, isPremium])
+  @@index([isActive, sortOrder])
+}
+
+model UserAvatar {
+  id        String   @id @default(cuid())
+  userId    String
+  avatarId  String
+  unlockedAt DateTime @default(now())
+  purchaseId String?
+  
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatar   Avatar   @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+  purchase Purchase? @relation(fields: [purchaseId], references: [id])
+  
+  @@unique([userId, avatarId])
+}
+
+model AvatarCustomization {
+  id        String @id @default(cuid())
+  userId    String
+  avatarId  String
+  colorScheme Json // {primary: "#FF6943", secondary: "#FFD700"}
+  accessories Json // ["hat", "glasses", "bowtie"]
+  animation   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatar Avatar @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, avatarId])
+}
+
+model ShopItem {
+  id          String @id @default(cuid())
+  name        String
+  description String
+  category    ShopCategory
+  itemType    ShopItemType
+  price       Decimal @db.Decimal(10,2)
+  originalPrice Decimal? @db.Decimal(10,2)
+  currency    String @default("EUR")
+  
+  // Product data
+  avatarId    String?
+  avatar      Avatar? @relation(fields: [avatarId], references: [id])
+  bundleItems Json? // For bundle products
+  metadata    Json? // Additional product data
+  
+  // Availability
+  isActive    Boolean @default(true)
+  isFeatured  Boolean @default(false)
+  availableFrom DateTime?
+  availableUntil DateTime?
+  maxPurchases Int? // Limit per user
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  purchases   Purchase[]
+  cartItems   CartItem[]
+  
+  @@index([category, isActive])
+  @@index([isFeatured, isActive])
+}
+
+model Purchase {
+  id            String @id @default(cuid())
+  userId        String
+  shopItemId    String
+  transactionId String @unique // From payment provider
+  platform      PurchasePlatform
+  status        PurchaseStatus @default(PENDING)
+  amount        Decimal @db.Decimal(10,2)
+  currency      String
+  paymentMethod String?
+  
+  // Validation
+  receipt       Json? // Store receipt data
+  verified      Boolean @default(false)
+  verifiedAt    DateTime?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopItem      ShopItem @relation(fields: [shopItemId], references: [id])
+  userAvatars   UserAvatar[]
+  
+  @@index([userId, status])
+  @@index([platform, status])
+}
+
+model CartItem {
+  id         String @id @default(cuid())
+  userId     String
+  shopItemId String
+  quantity   Int @default(1)
+  addedAt    DateTime @default(now())
+  
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopItem ShopItem @relation(fields: [shopItemId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, shopItemId])
+}
+
+enum AccountType {
+  FREE
+  PREMIUM
+  ADMIN
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum GameState {
+  WAITING
+  STARTING
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum LLMProvider {
+  OPENAI
+  ANTHROPIC
+  GOOGLE
+  CUSTOM
+}
+
+enum AdType {
+  BANNER
+  INTERSTITIAL
+  REWARDED
+}
+
+enum AvatarCategory {
+  ANIMALS
+  FANTASY
+  PROFESSIONALS
+  SCIFI
+  SEASONAL
+  EXCLUSIVE
+}
+
+enum ShopCategory {
+  AVATARS
+  CUSTOMIZATION
+  QUESTION_SETS
+  POWER_UPS
+  SUBSCRIPTIONS
+  BUNDLES
+}
+
+enum ShopItemType {
+  AVATAR
+  COLOR_PACK
+  ACCESSORY_PACK
+  ANIMATION_PACK
+  QUESTION_SET
+  POWER_UP
+  SUBSCRIPTION
+  BUNDLE
+}
+
+enum PurchasePlatform {
+  GOOGLE_PLAY
+  APP_STORE
+  WEB_STRIPE
+}
+
+enum PurchaseStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}

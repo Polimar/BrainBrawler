@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrainBrawler P2P WebRTC Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #FFD700, #FF6943);
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #FF6943;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            background: #FFF3CD;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.connected { background: #d4edda; color: #155724; }
+        .status.disconnected { background: #f8d7da; color: #721c24; }
+        .status.info { background: #cce8f4; color: #0c5460; }
+        
+        button {
+            background: #FF6943;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover { background: #e55a3a; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .peer-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .peer-card {
+            background: white;
+            padding: 10px;
+            border: 1px solid #FF6943;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .peer-card.host { border-color: #FFD700; background: #FFFBF0; }
+        
+        .log {
+            height: 200px;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: #f8f9fa;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 BrainBrawler P2P Test</h1>
+        
+        <div class="section">
+            <h3>🔌 Connection Status</h3>
+            <div id="connectionStatus" class="status disconnected">Disconnected</div>
+            <button onclick="connect()" id="connectBtn">Connect to Server</button>
+            <button onclick="disconnect()" id="disconnectBtn" disabled>Disconnect</button>
+        </div>
+
+        <div class="section">
+            <h3>🎮 Game Management</h3>
+            <div>
+                <input type="text" id="usernameInput" placeholder="Username" value="TestUser">
+                <input type="text" id="gameCodeInput" placeholder="Game Code (empty = create new)" maxlength="6">
+                <button onclick="createOrJoinGame()" id="gameBtn" disabled>Create/Join Game</button>
+            </div>
+            <div id="gameStatus" class="status info">Not in game</div>
+        </div>
+
+        <div class="section">
+            <h3>👥 Peers in Game</h3>
+            <div id="peerList" class="peer-list">
+                <div class="peer-card">No peers connected</div>
+            </div>
+            <div style="margin-top: 15px;">
+                <button onclick="electNewHost()" id="electBtn" disabled>Trigger Host Election</button>
+                <button onclick="simulateDisconnect()" id="disconnectSimBtn" disabled>Simulate Disconnect</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>🔧 P2P Controls</h3>
+            <div>
+                <button onclick="sendTestMessage()" id="sendMsgBtn" disabled>Send Test Message</button>
+                <button onclick="startGame()" id="startGameBtn" disabled>Start Game (Host Only)</button>
+                <button onclick="updateConnectionQuality()" id="updateQualityBtn" disabled>Update Connection Quality</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>📋 Activity Log</h3>
+            <div id="activityLog" class="log"></div>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Global variables
+        let socket = null;
+        let gameId = null;
+        let currentUser = null;
+        let peers = new Map();
+        let isHost = false;
+
+        // Utility functions
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('activityLog');
+            const logEntry = document.createElement('div');
+            logEntry.style.color = type === 'error' ? '#d32f2f' : type === 'success' ? '#388e3c' : '#1976d2';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateStatus(elementId, message, className) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${className}`;
+        }
+
+        function updateButtons() {
+            const connected = socket && socket.connected;
+            const inGame = gameId !== null;
+            
+            document.getElementById('connectBtn').disabled = connected;
+            document.getElementById('disconnectBtn').disabled = !connected;
+            document.getElementById('gameBtn').disabled = !connected;
+            document.getElementById('electBtn').disabled = !inGame;
+            document.getElementById('disconnectSimBtn').disabled = !inGame;
+            document.getElementById('sendMsgBtn').disabled = !inGame;
+            document.getElementById('startGameBtn').disabled = !inGame || !isHost;
+            document.getElementById('updateQualityBtn').disabled = !inGame;
+        }
+
+        // Connection management
+        function connect() {
+            const username = document.getElementById('usernameInput').value || 'TestUser';
+            
+            socket = io('http://localhost:3000', {
+                transports: ['websocket', 'polling']
+            });
+
+            socket.on('connect', () => {
+                log('Connected to server', 'success');
+                updateStatus('connectionStatus', 'Connected', 'connected');
+                updateButtons();
+                
+                // Authenticate with a mock token
+                const mockToken = btoa(JSON.stringify({
+                    userId: 'test-' + Math.random().toString(36).substr(2, 9),
+                    username: username,
+                    exp: Math.floor(Date.now() / 1000) + 3600
+                }));
+                
+                socket.emit('authenticate', mockToken);
+            });
+
+            socket.on('disconnect', () => {
+                log('Disconnected from server', 'error');
+                updateStatus('connectionStatus', 'Disconnected', 'disconnected');
+                updateButtons();
+            });
+
+            socket.on('authenticated', (data) => {
+                if (data.success) {
+                    currentUser = { id: data.userId, username: data.username };
+                    log(`Authenticated as ${data.username}`, 'success');
+                } else {
+                    log('Authentication failed: ' + data.error, 'error');
+                }
+            });
+
+            // Game events
+            socket.on('joined-game', (data) => {
+                gameId = data.gameId;
+                isHost = data.isHost;
+                log(`Joined game ${gameId} ${isHost ? '(as host)' : ''}`, 'success');
+                updateStatus('gameStatus', `In game ${gameId} ${isHost ? '(HOST)' : ''}`, 'connected');
+                updatePeerList(data.players);
+                updateButtons();
+            });
+
+            socket.on('players-updated', (data) => {
+                updatePeerList(data.players);
+            });
+
+            socket.on('player-disconnected', (data) => {
+                log(`Player ${data.username} disconnected`, 'info');
+                if (data.wasHost) {
+                    log('Host disconnected - election may start', 'info');
+                }
+            });
+
+            socket.on('host-election-started', (data) => {
+                log(`Host election started - suggested: ${data.suggestedHostId}`, 'info');
+                log(`Candidates: ${data.candidates.map(c => c.username).join(', ')}`, 'info');
+            });
+
+            socket.on('new-host-elected', (data) => {
+                log(`New host elected: ${data.newHostUsername}`, 'success');
+                isHost = data.newHostId === currentUser?.id;
+                updateButtons();
+            });
+
+            socket.on('game-state-updated', (gameState) => {
+                log(`Game state updated: ${gameState.status}`, 'info');
+            });
+
+            socket.on('error', (error) => {
+                log('Error: ' + error, 'error');
+            });
+
+            // WebRTC signaling events
+            socket.on('webrtc-offer', (data) => {
+                log(`WebRTC offer received from ${data.from}`, 'info');
+            });
+
+            socket.on('webrtc-answer', (data) => {
+                log(`WebRTC answer received from ${data.from}`, 'info');
+            });
+
+            socket.on('webrtc-ice-candidate', (data) => {
+                log(`WebRTC ICE candidate from ${data.from}`, 'info');
+            });
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                gameId = null;
+                currentUser = null;
+                peers.clear();
+                isHost = false;
+                updateStatus('gameStatus', 'Not in game', 'info');
+                updatePeerList([]);
+                updateButtons();
+            }
+        }
+
+        // Game management
+        function createOrJoinGame() {
+            if (!socket || !currentUser) {
+                log('Not connected or not authenticated', 'error');
+                return;
+            }
+
+            const gameCode = document.getElementById('gameCodeInput').value.trim();
+            
+            if (gameCode) {
+                // Join existing game
+                socket.emit('join-game', gameCode.toUpperCase());
+                log(`Attempting to join game: ${gameCode}`, 'info');
+            } else {
+                // Create new game (this would typically go through REST API)
+                const mockGameId = 'GAME' + Math.random().toString(36).substr(2, 4).toUpperCase();
+                socket.emit('join-game', mockGameId);
+                log(`Creating new game: ${mockGameId}`, 'info');
+            }
+        }
+
+        function startGame() {
+            if (!gameId || !isHost) {
+                log('Only host can start the game', 'error');
+                return;
+            }
+            
+            socket.emit('sync-game-state', {
+                status: 'IN_PROGRESS',
+                currentQuestionIndex: 0,
+                timeRemaining: 30
+            });
+            log('Game started!', 'success');
+        }
+
+        // P2P simulation functions
+        function electNewHost() {
+            if (!gameId) return;
+            
+            socket.emit('request-host-election');
+            log('Requested host election', 'info');
+        }
+
+        function simulateDisconnect() {
+            if (!gameId) return;
+            
+            // Simulate temporary disconnection
+            socket.emit('heartbeat'); // Stop sending heartbeats
+            log('Simulated connection loss (stopped heartbeat)', 'info');
+        }
+
+        function sendTestMessage() {
+            if (!gameId) return;
+            
+            socket.emit('player-answer', {
+                answer: 'A',
+                timeSpent: Math.floor(Math.random() * 5000) + 1000
+            });
+            log('Sent test answer', 'info');
+        }
+
+        function updateConnectionQuality() {
+            if (!gameId || !currentUser) return;
+            
+            const qualities = ['excellent', 'good', 'poor'];
+            const quality = qualities[Math.floor(Math.random() * qualities.length)];
+            const latency = Math.floor(Math.random() * 200) + 50;
+            
+            // This would typically be sent via REST API
+            fetch('/api/games/' + gameId + '/connection', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer mock-token'
+                },
+                body: JSON.stringify({
+                    peerId: currentUser.id,
+                    connectionQuality: quality,
+                    latency: latency
+                })
+            }).then(response => {
+                if (response.ok) {
+                    log(`Updated connection: ${quality} (${latency}ms)`, 'success');
+                } else {
+                    log('Failed to update connection info', 'error');
+                }
+            }).catch(err => {
+                log('Connection update error: ' + err.message, 'error');
+            });
+        }
+
+        // UI update functions
+        function updatePeerList(players) {
+            const peerListDiv = document.getElementById('peerList');
+            
+            if (!players || players.length === 0) {
+                peerListDiv.innerHTML = '<div class="peer-card">No peers connected</div>';
+                return;
+            }
+            
+            peerListDiv.innerHTML = players.map(player => `
+                <div class="peer-card ${player.isHost ? 'host' : ''}">
+                    <strong>${player.username}</strong>
+                    ${player.isHost ? '<br>👑 HOST' : ''}
+                    <br>Ready: ${player.isReady ? '✅' : '❌'}
+                    ${player.connectionQuality ? `<br>📶 ${player.connectionQuality}` : ''}
+                    ${player.latency ? `<br>⏱️ ${player.latency}ms` : ''}
+                </div>
+            `).join('');
+        }
+
+        function clearLog() {
+            document.getElementById('activityLog').innerHTML = '';
+        }
+
+        // Start heartbeat when in game
+        setInterval(() => {
+            if (socket && gameId) {
+                socket.emit('heartbeat');
+            }
+        }, 5000);
+
+        // Initialize
+        updateButtons();
+        log('BrainBrawler P2P Test Client ready', 'success');
+    </script>
+</body>
+</html> 
