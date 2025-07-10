@@ -8,7 +8,7 @@ export const getShopItems = async (req: AuthenticatedRequest, res: Response): Pr
   try {
     const { category } = req.query;
 
-    const whereClause = {
+    const whereClause: any = {
       ...(category && { category: category as string })
     };
 
@@ -35,18 +35,18 @@ export const getUserItems = async (req: AuthenticatedRequest, res: Response): Pr
       return;
     }
 
-    const purchases = await prisma.userPurchase.findMany({
+    const purchases = await prisma.purchase.findMany({
       where: { userId: req.user.id },
       include: {
         shopItem: true
       },
-      orderBy: { purchasedAt: 'desc' }
+      orderBy: { createdAt: 'desc' }
     });
 
     const ownedItems = purchases.map((purchase: any) => ({
       ...purchase.shopItem,
-      purchasedAt: purchase.purchasedAt,
-      isActive: purchase.isActive
+      purchasedAt: purchase.createdAt,
+      isActive: purchase.status === 'COMPLETED'
     }));
 
     res.json({ ownedItems });
@@ -82,10 +82,11 @@ export const purchaseItem = async (req: AuthenticatedRequest, res: Response): Pr
     }
 
     // Check if user already owns this item
-    const existingPurchase = await prisma.userPurchase.findFirst({
+    const existingPurchase = await prisma.purchase.findFirst({
       where: {
         userId: req.user.id,
-        shopItemId: itemId
+        shopItemId: itemId,
+        status: 'COMPLETED'
       }
     });
 
@@ -94,7 +95,7 @@ export const purchaseItem = async (req: AuthenticatedRequest, res: Response): Pr
       return;
     }
 
-    // Get user
+    // Get user with coins
     const user = await prisma.user.findUnique({
       where: { id: req.user.id }
     });
@@ -106,17 +107,18 @@ export const purchaseItem = async (req: AuthenticatedRequest, res: Response): Pr
 
     // Process payment based on method
     let isPaymentValid = false;
+    const priceNumber = Number(shopItem.price);
 
     if (paymentMethod === 'coins') {
       // Check if user has enough coins
-      if (user.coins < shopItem.price) {
+      if (user.coins < priceNumber) {
         res.status(400).json({ error: 'Insufficient coins' });
         return;
       }
       isPaymentValid = true;
     } else if (paymentMethod === 'real_money') {
       // Validate receipt (simplified - implement proper receipt validation)
-      isPaymentValid = await validateReceipt(receiptData, shopItem.price);
+      isPaymentValid = await validateReceipt(receiptData, priceNumber);
     }
 
     if (!isPaymentValid) {
@@ -128,12 +130,18 @@ export const purchaseItem = async (req: AuthenticatedRequest, res: Response): Pr
     const userId = req.user.id;
     const result = await prisma.$transaction(async (tx: any) => {
       // Create purchase record
-      const purchase = await tx.userPurchase.create({
+      const purchase = await tx.purchase.create({
         data: {
           userId,
           shopItemId: itemId,
+          transactionId: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          platform: paymentMethod === 'coins' ? 'WEB_STRIPE' : 'WEB_STRIPE',
+          status: 'COMPLETED',
+          amount: shopItem.price,
+          currency: shopItem.currency,
           paymentMethod,
-          isActive: true
+          verified: true,
+          verifiedAt: new Date()
         },
         include: {
           shopItem: true
@@ -146,25 +154,48 @@ export const purchaseItem = async (req: AuthenticatedRequest, res: Response): Pr
           where: { id: userId },
           data: {
             coins: {
-              decrement: shopItem.price
+              decrement: priceNumber
             }
+          }
+        });
+
+        // Record coin transaction
+        await tx.coinTransaction.create({
+          data: {
+            userId,
+            amount: -priceNumber,
+            type: 'SPENT',
+            reason: `Purchase: ${shopItem.name}`,
+            balanceAfter: user.coins - priceNumber
           }
         });
       }
 
       // If it's an avatar, set it as selected
-      if (shopItem.category === 'AVATAR') {
+      if (shopItem.category === 'AVATARS') {
         await tx.user.update({
           where: { id: userId },
           data: {
-            selectedAvatarId: shopItem.id
+            selectedAvatarId: shopItem.avatarId
           }
         });
+
+        // Create UserAvatar record
+        if (shopItem.avatarId) {
+          await tx.userAvatar.create({
+            data: {
+              userId,
+              avatarId: shopItem.avatarId,
+              purchaseId: purchase.id
+            }
+          });
+        }
       }
 
       // If it's premium subscription, extend premium access
-      if (shopItem.category === 'PREMIUM') {
-        const premiumDays = shopItem.metadata ? JSON.parse(shopItem.metadata).days || 30 : 30;
+      if (shopItem.category === 'SUBSCRIPTIONS') {
+        const metadata = shopItem.metadata as any;
+        const premiumDays = metadata?.days || 30;
         const premiumExpiresAt = new Date();
         premiumExpiresAt.setDate(premiumExpiresAt.getDate() + premiumDays);
 
@@ -201,7 +232,7 @@ export const toggleItemActive = async (req: AuthenticatedRequest, res: Response)
     const { purchaseId } = req.params;
     const { isActive } = req.body;
 
-    const purchase = await prisma.userPurchase.findFirst({
+    const purchase = await prisma.purchase.findFirst({
       where: {
         id: purchaseId,
         userId: req.user.id
@@ -217,21 +248,24 @@ export const toggleItemActive = async (req: AuthenticatedRequest, res: Response)
     }
 
     // Only cosmetic items can be toggled
-    if (!['AVATAR', 'THEME', 'EFFECT'].includes(purchase.shopItem.category)) {
+    if (!['AVATARS', 'CUSTOMIZATION'].includes(purchase.shopItem.category)) {
       res.status(400).json({ error: 'This item cannot be toggled' });
       return;
     }
 
-    await prisma.userPurchase.update({
+    // Update purchase status
+    await prisma.purchase.update({
       where: { id: purchaseId },
-      data: { isActive }
+      data: { 
+        status: isActive ? 'COMPLETED' : 'CANCELLED'
+      }
     });
 
     // If activating an avatar, update user's selected avatar
-    if (isActive && purchase.shopItem.category === 'AVATAR') {
+    if (isActive && purchase.shopItem.category === 'AVATARS') {
       await prisma.user.update({
         where: { id: req.user.id },
-        data: { selectedAvatarId: purchase.shopItem.id }
+        data: { selectedAvatarId: purchase.shopItem.avatarId }
       });
     }
 
@@ -264,9 +298,6 @@ export const giftCoins = async (req: AuthenticatedRequest, res: Response): Promi
         coins: {
           increment: amount
         }
-      },
-      select: {
-        coins: true
       }
     });
 

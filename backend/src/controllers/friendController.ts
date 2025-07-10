@@ -40,7 +40,7 @@ export const getFriends = async (req: AuthenticatedRequest, res: Response): Prom
     });
 
     const friends = friendships.map(friendship => {
-      const friend = friendship.user1Id === req.user.id ? friendship.user2 : friendship.user1;
+      const friend = friendship.user1Id === req.user!.id ? friendship.user2 : friendship.user1;
       return {
         ...friend,
         friendshipCreatedAt: friendship.createdAt
@@ -185,12 +185,12 @@ export const searchUsers = async (req: AuthenticatedRequest, res: Response): Pro
     const pendingRequestIds = new Set();
 
     existingFriendships.forEach(friendship => {
-      const friendId = friendship.user1Id === req.user.id ? friendship.user2Id : friendship.user1Id;
+      const friendId = friendship.user1Id === req.user!.id ? friendship.user2Id : friendship.user1Id;
       friendIds.add(friendId);
     });
 
     pendingRequests.forEach(request => {
-      const targetId = request.senderId === req.user.id ? request.receiverId : request.senderId;
+      const targetId = request.senderId === req.user!.id ? request.receiverId : request.senderId;
       pendingRequestIds.add(targetId);
     });
 
