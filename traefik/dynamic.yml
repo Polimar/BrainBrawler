@@ -1,0 +1,9 @@
+tls:
+  certificates:
+    - certFile: /certs/www.brainbrawler.com.crt
+      keyFile: /certs/www.brainbrawler.com.key
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/www.brainbrawler.com.crt
+        keyFile: /certs/www.brainbrawler.com.key 

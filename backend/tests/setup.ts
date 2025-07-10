@@ -1,4 +1,11 @@
+/// <reference types="jest" />
+
 import { PrismaClient } from '@prisma/client';
+
+declare global {
+  var beforeEach: jest.Lifecycle;
+  var afterAll: jest.Lifecycle;
+}
 
 const prisma = new PrismaClient({
   datasources: {

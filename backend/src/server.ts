@@ -12,6 +12,7 @@ import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import gameRoutes from './routes/games';
 import questionRoutes from './routes/questions';
+import adsRoutes from './routes/ads';
 
 const app = express();
 const server = createServer(app);
@@ -110,6 +111,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/questions', questionRoutes);
+app.use('/api/ads', adsRoutes);
 app.use('/api/friends', require('./routes/friends').default);
 app.use('/api/premium', require('./routes/premium').default);
 app.use('/api/shop', require('./routes/shop').default);

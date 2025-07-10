@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+
 import request from 'supertest';
 import { app } from '../src/server';
 import { prisma } from '../src/config/database';
