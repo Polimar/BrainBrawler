@@ -1,9 +1,13 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit'
+import authSlice from './slices/authSlice'
+import userSlice from './slices/userSlice'
+import gameSlice from './slices/gameSlice'
 
-// Basic store setup - slices will be added later
 export const store = configureStore({
   reducer: {
-    // Add your slices here
+    auth: authSlice,
+    user: userSlice,
+    game: gameSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -11,7 +15,7 @@ export const store = configureStore({
         ignoredActions: ['persist/PERSIST'],
       },
     }),
-});
+})
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch; 
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch 

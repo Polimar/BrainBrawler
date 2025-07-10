@@ -27,10 +27,12 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Copy built application
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Create nginx user and set permissions
-RUN addgroup -g 101 nginx && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx && \
-    chown -R nginx:nginx /usr/share/nginx/html && \
+# Create nginx pid dir and set permissions
+RUN mkdir -p /var/run/nginx && \
+    chown -R nginx:nginx /var/run/nginx
+
+# Set permissions (nginx user already exists)
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx && \
     chown -R nginx:nginx /var/log/nginx && \
     chown -R nginx:nginx /etc/nginx/conf.d

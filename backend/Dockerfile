@@ -5,7 +5,7 @@ FROM node:22-alpine
 WORKDIR /app
 
 # Install build dependencies for potential native modules
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ netcat-openbsd
 
 # Copy package files for dependency caching
 COPY package*.json ./
@@ -18,6 +18,13 @@ COPY . .
 
 # Generate Prisma client
 RUN npx prisma generate
+
+# Build TypeScript
+RUN npm run build
+
+# Copy entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -36,5 +43,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Default command for development (can be overridden)
-CMD ["npm", "run", "dev"] 
+# Start command
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["npm", "run", "start"] 
