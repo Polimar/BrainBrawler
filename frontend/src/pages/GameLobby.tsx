@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RootState } from '../store/store'
 import { api } from '../services/api'
@@ -21,7 +21,7 @@ interface Game {
   maxPlayers: number
   totalQuestions: number
   timePerQuestion: number
-  participantCount: number
+  currentPlayers: number
   isPrivate: boolean
   state: string
 }
@@ -290,7 +290,7 @@ const GameLobby: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-400">Players:</span>
-                    <span className="text-white">{game.participantCount}/{game.maxPlayers}</span>
+                    <span className="text-white">{game.currentPlayers}/{game.maxPlayers}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-400">Questions:</span>
@@ -305,9 +305,9 @@ const GameLobby: React.FC = () => {
                 <button 
                   onClick={() => handleJoinGame(game.code)}
                   className="btn-primary w-full"
-                  disabled={game.participantCount >= game.maxPlayers}
+                  disabled={game.currentPlayers >= game.maxPlayers}
                 >
-                  {game.participantCount >= game.maxPlayers ? '🔒 Full' : '🎮 Join Game'}
+                  {game.currentPlayers >= game.maxPlayers ? '🔒 Full' : '🎮 Join Game'}
                 </button>
               </div>
             ))}

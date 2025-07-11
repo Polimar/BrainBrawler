@@ -76,7 +76,7 @@ router.post('/click', authenticateToken, async (req: any, res) => {
     });
 
     // Give user some coins for clicking ads
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { coins: { increment: 5 } }
     });
@@ -87,7 +87,8 @@ router.post('/click', authenticateToken, async (req: any, res) => {
         userId,
         amount: 5,
         type: 'AD_REWARD',
-        description: 'Reward for viewing advertisement'
+        reason: 'Reward for viewing advertisement',
+        balanceAfter: updatedUser.coins
       }
     });
 
@@ -125,6 +126,10 @@ router.get('/config', authenticateToken, async (req: any, res) => {
           banner: 'brainbrawler_banner',
           interstitial: 'brainbrawler_interstitial', 
           rewarded: 'brainbrawler_rewarded'
+        },
+        sdkConfig: {
+          appId: 'ca-app-pub-8145977851051737~8523227896',
+          nativeAdUnitId: 'ca-app-pub-8145977851051737/1115511164'
         },
         placement: {
           lobby: ['banner'],
@@ -165,7 +170,7 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
       totalImpressions,
       totalClicks,
       clickRate: totalImpressions > 0 ? (totalClicks / totalImpressions * 100).toFixed(1) : 0,
-      earnedFromAds: earnedFromAds._sum.amount || 0
+      earnedFromAds: earnedFromAds._sum?.amount || 0
     });
 
   } catch (error) {

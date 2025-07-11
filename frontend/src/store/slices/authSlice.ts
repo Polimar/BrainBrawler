@@ -23,7 +23,7 @@ interface AuthState {
 const initialState: AuthState = {
   isAuthenticated: false,
   user: null,
-  token: localStorage.getItem('brainbrawler_token'),
+  token: null,
   loading: false,
   error: null,
 }
@@ -33,7 +33,7 @@ export const login = createAsyncThunk(
   'auth/login',
   async ({ emailOrUsername, password }: { emailOrUsername: string; password: string }) => {
     const response = await api.post('/auth/login', { emailOrUsername, password })
-    localStorage.setItem('brainbrawler_token', response.data.token)
+    localStorage.setItem('brainbrawler_token', response.data.tokens.accessToken)
     return response.data
   }
 )
@@ -42,7 +42,7 @@ export const register = createAsyncThunk(
   'auth/register',
   async ({ username, email, password }: { username: string; email: string; password: string }) => {
     const response = await api.post('/auth/register', { username, email, password })
-    localStorage.setItem('brainbrawler_token', response.data.token)
+    localStorage.setItem('brainbrawler_token', response.data.tokens.accessToken)
     return response.data
   }
 )
@@ -90,7 +90,7 @@ const authSlice = createSlice({
         state.loading = false
         state.isAuthenticated = true
         state.user = action.payload.user
-        state.token = action.payload.token
+        state.token = action.payload.tokens.accessToken
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false
@@ -105,7 +105,7 @@ const authSlice = createSlice({
         state.loading = false
         state.isAuthenticated = true
         state.user = action.payload.user
-        state.token = action.payload.token
+        state.token = action.payload.tokens.accessToken
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false

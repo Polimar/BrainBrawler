@@ -480,8 +480,12 @@ enum PurchaseStatus {
 }
 
 enum CoinTransactionType {
-  EARNED
-  SPENT
-  GIFTED
-  REFUNDED
+  PURCHASE_REWARD
+  GAME_REWARD
+  DAILY_LOGIN
+  REFERRAL_BONUS
+  ITEM_PURCHASE
+  REFUND
+  AD_REWARD
+  GIFT
 }

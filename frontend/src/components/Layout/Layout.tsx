@@ -23,10 +23,15 @@ const Layout: React.FC = () => {
   const navItems = [
     { path: '/app', label: 'Dashboard', icon: '🏠', exact: true },
     { path: '/app/lobby', label: 'Game Lobby', icon: '🎮' },
+    { path: '/app/create-game', label: 'Create Game', icon: '➕', premium: true },
+    { path: '/app/friends', label: 'Friends', icon: '👥' },
+    { path: '/app/question-sets', label: 'Question Sets', icon: '📚', premium: true },
     { path: '/app/profile', label: 'Profile', icon: '👤' },
     { path: '/app/shop', label: 'Shop', icon: '🛒' },
     { path: '/app/leaderboard', label: 'Leaderboard', icon: '🏆' },
   ]
+
+  const isPremium = user?.accountType === 'PREMIUM' || user?.accountType === 'ADMIN'
 
   return (
     <div className="min-h-screen flex">
@@ -76,23 +81,42 @@ const Layout: React.FC = () => {
 
         {/* Navigation */}
         <nav className="p-4 space-y-2">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.exact}
-              className={({ isActive }) =>
-                `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? 'bg-gradient-to-r from-pink-500/20 to-purple-600/20 text-white border border-purple-500/30'
-                    : 'text-gray-300 hover:text-white hover:bg-white/5'
-                }`
-              }
-            >
-              <span className="text-lg">{item.icon}</span>
-              <span className="font-medium">{item.label}</span>
-            </NavLink>
-          ))}
+          {navItems.map((item) => {
+            // Hide premium features for free users
+            if (item.premium && !isPremium) {
+              return (
+                <div
+                  key={item.path}
+                  className="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-500 relative"
+                >
+                  <span className="text-lg opacity-50">{item.icon}</span>
+                  <span className="font-medium opacity-50">{item.label}</span>
+                  <span className="absolute right-2 text-xs bg-yellow-600 text-white px-2 py-1 rounded-full">PRO</span>
+                </div>
+              )
+            }
+
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.exact}
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 relative ${
+                    isActive
+                      ? 'bg-gradient-to-r from-pink-500/20 to-purple-600/20 text-white border border-purple-500/30'
+                      : 'text-gray-300 hover:text-white hover:bg-white/5'
+                  }`
+                }
+              >
+                <span className="text-lg">{item.icon}</span>
+                <span className="font-medium">{item.label}</span>
+                {item.premium && isPremium && (
+                  <span className="absolute right-2 text-xs bg-purple-600 text-white px-2 py-1 rounded-full">PRO</span>
+                )}
+              </NavLink>
+            )
+          })}
         </nav>
 
         {/* Bottom Actions */}

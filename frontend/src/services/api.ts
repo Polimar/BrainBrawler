@@ -3,7 +3,9 @@ import axios from 'axios'
 // Auto-detect the backend URL based on current location
 const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
-    return `http://${window.location.hostname}:3000/api`
+    const protocol = window.location.protocol // 'https:' or 'http:'
+    const hostname = window.location.hostname
+    return `${protocol}//${hostname}/api`
   }
   return 'http://localhost:3000/api'
 }

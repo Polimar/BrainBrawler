@@ -1,16 +1,13 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { generateGameCode } from '../utils/gameUtils';
-
-interface AuthenticatedRequest extends Request {
-  userId?: string;
-}
+import { AuthenticatedRequest } from '../middleware/auth';
 
 // Create a new P2P game
 export const createGame = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { questionSetId, maxPlayers = 8, totalQuestions = 10, timePerQuestion = 30, isPrivate = false } = req.body;
-    const userId = req.userId!;
+    const userId = req.user!.id;
 
     // Verify user can create games (premium check)
     const user = await prisma.user.findUnique({
@@ -137,7 +134,7 @@ export const createGame = async (req: AuthenticatedRequest, res: Response) => {
 export const joinGame = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { gameCode } = req.body;
-    const userId = req.userId!;
+    const userId = req.user!.id;
 
     // Find the game
     const game = await prisma.game.findFirst({
@@ -263,7 +260,7 @@ export const joinGame = async (req: AuthenticatedRequest, res: Response) => {
 export const getGame = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { gameId } = req.params;
-    const userId = req.userId!;
+    const userId = req.user!.id;
 
     const game = await prisma.game.findUnique({
       where: { id: gameId },
@@ -343,7 +340,7 @@ export const getGame = async (req: AuthenticatedRequest, res: Response) => {
 export const startGame = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { gameId } = req.params;
-    const userId = req.userId!;
+    const userId = req.user!.id;
 
     // Verify user is the current host
     const game = await prisma.game.findUnique({
@@ -401,7 +398,7 @@ export const updatePlayerReady = async (req: AuthenticatedRequest, res: Response
   try {
     const { gameId } = req.params;
     const { isReady } = req.body;
-    const userId = req.userId!;
+    const userId = req.user!.id;
 
     const participant = await prisma.gameParticipant.findUnique({
       where: {
@@ -441,7 +438,7 @@ export const electNewHost = async (req: AuthenticatedRequest, res: Response) => 
   try {
     const { gameId } = req.params;
     const { newHostId, reason = 'manual', candidateIds = [] } = req.body;
-    const userId = req.userId!;
+    const userId = req.user!.id;
 
     const game = await prisma.game.findUnique({
       where: { id: gameId },
@@ -516,7 +513,7 @@ export const updateConnectionInfo = async (req: AuthenticatedRequest, res: Respo
   try {
     const { gameId } = req.params;
     const { peerId, connectionQuality, latency } = req.body;
-    const userId = req.userId!;
+    const userId = req.user!.id;
 
     await prisma.gameParticipant.update({
       where: {
@@ -546,7 +543,7 @@ export const updateConnectionInfo = async (req: AuthenticatedRequest, res: Respo
 export const leaveGame = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { gameId } = req.params;
-    const userId = req.userId!;
+    const userId = req.user!.id;
 
     const game = await prisma.game.findUnique({
       where: { id: gameId },

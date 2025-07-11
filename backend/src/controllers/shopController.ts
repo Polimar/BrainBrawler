@@ -164,7 +164,7 @@ export const purchaseItem = async (req: AuthenticatedRequest, res: Response): Pr
           data: {
             userId,
             amount: -priceNumber,
-            type: 'SPENT',
+            type: 'ITEM_PURCHASE',
             reason: `Purchase: ${shopItem.name}`,
             balanceAfter: user.coins - priceNumber
           }
@@ -306,7 +306,7 @@ export const giftCoins = async (req: AuthenticatedRequest, res: Response): Promi
       data: {
         userId: req.user.id,
         amount,
-        type: 'EARNED',
+        type: 'GIFT',
         reason: reason || 'Gift coins',
         balanceAfter: updatedUser.coins
       }
