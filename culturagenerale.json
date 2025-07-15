@@ -1,0 +1,578 @@
+{
+  "questionSet": {
+    "name": "Quiz di Cultura Generale",
+    "description": "500 domande di cultura generale in italiano",
+    "language": "IT",
+    "category": "Generale"
+  },
+  "questions": [
+    {
+      "text": "Qual è la capitale dell'Italia?",
+      "options": ["Milano", "Firenze", "Roma", "Napoli"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Roma è la capitale d'Italia dal 1871."
+    },
+    {
+      "text": "Chi ha dipinto la 'Gioconda'?",
+      "options": ["Michelangelo", "Raffaello", "Leonardo da Vinci", "Caravaggio"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Arte",
+      "explanation": "Leonardo da Vinci completò il dipinto tra il 1503 e il 1506."
+    },
+    {
+      "text": "In quale anno cadde il Muro di Berlino?",
+      "options": ["1987", "1989", "1991", "1985"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Storia",
+      "explanation": "Il muro fu abbattuto il 9 novembre 1989."
+    },
+    {
+      "text": "Qual è il fiume più lungo d'Europa?",
+      "options": ["Danubio", "Reno", "Volga", "Tamigi"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Il Volga si estende per 3.690 km attraverso la Russia."
+    },
+    {
+      "text": "Chi scrisse 'I Promessi Sposi'?",
+      "options": ["Giovanni Verga", "Alessandro Manzoni", "Italo Calvino", "Luigi Pirandello"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Letteratura",
+      "explanation": "Pubblicato nel 1827, è considerato il primo romanzo italiano."
+    },
+    {
+      "text": "Quale pianeta è noto come il 'Pianeta Rosso'?",
+      "options": ["Venere", "Giove", "Marte", "Saturno"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "Il colore rosso è dovuto all'ossido di ferro sulla sua superficie."
+    },
+    {
+      "text": "In quale città si trova la Torre Eiffel?",
+      "options": ["Lione", "Parigi", "Marsiglia", "Nizza"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Costruita nel 1889 per l'Esposizione Universale."
+    },
+    {
+      "text": "Chi fu il primo presidente degli Stati Uniti?",
+      "options": ["Thomas Jefferson", "George Washington", "Abraham Lincoln", "John Adams"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Storia",
+      "explanation": "In carica dal 1789 al 1797."
+    },
+    {
+      "text": "Quale elemento chimico ha simbolo 'O'?",
+      "options": ["Oro", "Osmio", "Ossigeno", "Olio"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "L'ossigeno costituisce circa il 21% dell'atmosfera terrestre."
+    },
+    {
+      "text": "A quale dinastia apparteneva Cleopatra?",
+      "options": ["Tolemaica", "Giulio-Claudia", "Flavia", "Achemenide"],
+      "correctAnswer": 0,
+      "difficulty": "DIFFICILE",
+      "category": "Storia",
+      "explanation": "Fu l'ultima regina dell'Egitto tolemaico (69-30 a.C.)."
+    },
+    {
+      "text": "Qual è la montagna più alta d'Italia?",
+      "options": ["Monte Rosa", "Cervino", "Monte Bianco", "Gran Paradiso"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Il Monte Bianco raggiunge i 4.808 metri sul livello del mare."
+    },
+    {
+      "text": "Chi è l'autore della 'Divina Commedia'?",
+      "options": ["Francesco Petrarca", "Giovanni Boccaccio", "Dante Alighieri", "Ludovico Ariosto"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Letteratura",
+      "explanation": "Scritta tra il 1304 e il 1321, è considerata la più grande opera della letteratura italiana."
+    },
+    {
+      "text": "Quale organo del corpo umano produce l'insulina?",
+      "options": ["Fegato", "Reni", "Pancreas", "Stomaco"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Il pancreas produce insulina, che regola il livello di glucosio nel sangue."
+    },
+    {
+      "text": "In quale anno è stata scoperta l'America da Cristoforo Colombo?",
+      "options": ["1492", "1502", "1485", "1510"],
+      "correctAnswer": 0,
+      "difficulty": "FACILE",
+      "category": "Storia",
+      "explanation": "Cristoforo Colombo raggiunse le Americhe il 12 ottobre 1492."
+    },
+    {
+      "text": "Quale paese ha vinto il campionato mondiale di calcio del 2006?",
+      "options": ["Francia", "Brasile", "Germania", "Italia"],
+      "correctAnswer": 3,
+      "difficulty": "MEDIO",
+      "category": "Sport",
+      "explanation": "L'Italia vinse contro la Francia ai rigori nella finale di Berlino."
+    },
+    {
+      "text": "Qual è il nome del protagonista del romanzo 'Il Giovane Holden'?",
+      "options": ["Holden Caulfield", "Jay Gatsby", "Atticus Finch", "Huckleberry Finn"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Scritto da J.D. Salinger, il protagonista è Holden Caulfield."
+    },
+    {
+      "text": "Quale pittore è famoso per i suoi dipinti di ninfee?",
+      "options": ["Vincent van Gogh", "Pablo Picasso", "Claude Monet", "Paul Cézanne"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Arte",
+      "explanation": "Monet dipinse le ninfee nel suo giardino di Giverny."
+    },
+    {
+      "text": "Quale è la capitale dell'Australia?",
+      "options": ["Sydney", "Melbourne", "Canberra", "Perth"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Canberra fu scelta come capitale nel 1908 come compromesso tra Sydney e Melbourne."
+    },
+    {
+      "text": "Chi scrisse '1984'?",
+      "options": ["Aldous Huxley", "George Orwell", "Ray Bradbury", "H.G. Wells"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Letteratura",
+      "explanation": "George Orwell pubblicò il romanzo distopico nel 1949."
+    },
+    {
+      "text": "Quale gas è responsabile del buco nell'ozono?",
+      "options": ["Anidride carbonica", "Metano", "Clorofluorocarburi (CFC)", "Ossido di azoto"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "I CFC, usati in aerosol e refrigeranti, danneggiano lo strato di ozono."
+    },
+    {
+      "text": "In quale città italiana si trova il Colosseo?",
+      "options": ["Milano", "Napoli", "Roma", "Firenze"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Il Colosseo, anfiteatro romano, si trova a Roma."
+    },
+    {
+      "text": "Chi è conosciuto come il 'Re del Rock and Roll'?",
+      "options": ["Elvis Presley", "Chuck Berry", "Buddy Holly", "Little Richard"],
+      "correctAnswer": 0,
+      "difficulty": "FACILE",
+      "category": "Musica",
+      "explanation": "Elvis Presley divenne una leggenda negli anni '50."
+    },
+    {
+      "text": "Quanti anni durò la Prima Guerra Mondiale?",
+      "options": ["2 anni", "4 anni", "6 anni", "8 anni"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Storia",
+      "explanation": "La guerra durò dal 1914 al 1918."
+    },
+    {
+      "text": "Quale è il più grande oceano del mondo?",
+      "options": ["Oceano Atlantico", "Oceano Indiano", "Oceano Pacifico", "Oceano Artico"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "L'Oceano Pacifico copre circa un terzo della superficie terrestre."
+    },
+    {
+      "text": "Quale scienziato formulò la teoria della relatività?",
+      "options": ["Isaac Newton", "Niels Bohr", "Albert Einstein", "Galileo Galilei"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "Albert Einstein pubblicò la teoria della relatività ristretta nel 1905 e quella generale nel 1915."
+    },
+    {
+      "text": "Quale strumento musicale è associato a Miles Davis?",
+      "options": ["Saxofono", "Tromba", "Pianoforte", "Contrabbasso"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Musica",
+      "explanation": "Miles Davis era un leggendario trombettista jazz."
+    },
+    {
+      "text": "Quale paese è il più grande produttore di caffè al mondo?",
+      "options": ["Colombia", "Vietnam", "Brasile", "Indonesia"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Il Brasile produce circa un terzo del caffè mondiale."
+    },
+    {
+      "text": "Quale è il simbolo chimico per l'oro?",
+      "options": ["Go", "Ag", "Au", "Or"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "Il simbolo Au deriva dal latino 'aurum'."
+    },
+    {
+      "text": "In quale città è ambientata la tragedia di Shakespeare 'Romeo e Giulietta'?",
+      "options": ["Venezia", "Firenze", "Roma", "Verona"],
+      "correctAnswer": 3,
+      "difficulty": "FACILE",
+      "category": "Letteratura",
+      "explanation": "La storia d'amore è ambientata a Verona, in Italia."
+    },
+    {
+      "text": "Quale artista dipinse la Cappella Sistina?",
+      "options": ["Leonardo da Vinci", "Raffaello", "Michelangelo", "Donatello"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Arte",
+      "explanation": "Michelangelo dipinse il soffitto tra il 1508 e il 1512."
+    },
+    {
+      "text": "Quale è la valuta ufficiale del Giappone?",
+      "options": ["Won", "Yuan", "Yen", "Ringgit"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Lo yen è la valuta ufficiale del Giappone dal 1871."
+    },
+    {
+      "text": "Chi fu il primo uomo a camminare sulla Luna?",
+      "options": ["Yuri Gagarin", "Neil Armstrong", "Buzz Aldrin", "Michael Collins"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Storia",
+      "explanation": "Neil Armstrong camminò sulla Luna il 20 luglio 1969."
+    },
+    {
+      "text": "Quale è il libro più venduto al mondo dopo la Bibbia?",
+      "options": ["Il Piccolo Principe", "Don Chisciotte", "Harry Potter e la Pietra Filosofale", "Dieci piccoli indiani"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Don Chisciotte di Miguel de Cervantes ha venduto oltre 500 milioni di copie."
+    },
+    {
+      "text": "Quale organo è responsabile della filtrazione del sangue nel corpo umano?",
+      "options": ["Polmoni", "Fegato", "Reni", "Cuore"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "I reni filtrano il sangue per rimuovere i rifiuti e produrre urina."
+    },
+    {
+      "text": "Quale è la lingua ufficiale del Brasile?",
+      "options": ["Spagnolo", "Portoghese", "Inglese", "Francese"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Il portoghese è la lingua ufficiale a causa della colonizzazione portoghese."
+    },
+    {
+      "text": "Chi ha scritto 'La Metamorfosi'?",
+      "options": ["Franz Kafka", "Fëdor Dostoevskij", "Lev Tolstoj", "Albert Camus"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Pubblicato nel 1915, racconta la storia di Gregor Samsa che si trasforma in insetto."
+    },
+    {
+      "text": "Quale è il paese più grande del mondo per superficie?",
+      "options": ["Canada", "Cina", "Stati Uniti", "Russia"],
+      "correctAnswer": 3,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "La Russia copre oltre 17 milioni di km², attraversando 11 fusi orari."
+    },
+    {
+      "text": "Quale vitamina è prodotta dal corpo umano quando esposto al sole?",
+      "options": ["Vitamina A", "Vitamina C", "Vitamina D", "Vitamina E"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "La vitamina D è essenziale per la salute delle ossa."
+    },
+    {
+      "text": "In quale città si trova la Statua della Libertà?",
+      "options": ["Washington D.C.", "Los Angeles", "New York", "Chicago"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "La statua si trova sull'isola di Liberty Island nel porto di New York."
+    },
+    {
+      "text": "Quale esploratore è noto per aver circumnavigato il globo?",
+      "options": ["Cristoforo Colombo", "Ferdinando Magellano", "Marco Polo", "Vasco da Gama"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Storia",
+      "explanation": "Magellano partì nel 1519, ma morì durante il viaggio; la sua spedizione completò la circumnavigazione."
+    },
+    {
+      "text": "Quale è il nome del deserto più grande del mondo?",
+      "options": ["Deserto del Sahara", "Deserto di Gobi", "Deserto Arabico", "Antartide"],
+      "correctAnswer": 3,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "L'Antartide è considerata un deserto freddo e copre 14 milioni di km²."
+    },
+    {
+      "text": "Quale pittore olandese tagliò parte del suo orecchio?",
+      "options": ["Rembrandt", "Vincent van Gogh", "Johannes Vermeer", "Piet Mondrian"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Arte",
+      "explanation": "Van Gogh si tagliò l'orecchio sinistro nel 1888."
+    },
+    {
+      "text": "Quale è il nome della galassia in cui viviamo?",
+      "options": ["Andromeda", "Via Lattea", "Triangolo", "Sombrero"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "La Via Lattea è una galassia a spirale che contiene il nostro sistema solare."
+    },
+    {
+      "text": "Quale paese è conosciuto come la Terra del Sol Levante?",
+      "options": ["Cina", "Corea del Sud", "Giappone", "Vietnam"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Il Giappone è chiamato 'Nihon' o 'Nippon', che significa 'origine del sole'."
+    },
+    {
+      "text": "Chi è l'autore di 'Ulisse'?",
+      "options": ["James Joyce", "Virginia Woolf", "T.S. Eliot", "Ernest Hemingway"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Pubblicato nel 1922, è considerato uno dei capolavori del modernismo."
+    },
+    {
+      "text": "Quale animale è il più veloce sulla terra?",
+      "options": ["Leone", "Ghepardo", "Antilocapra", "Aquila"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "Il ghepardo può raggiungere i 112 km/h in brevi scatti."
+    },
+    {
+      "text": "In quale città è nato Wolfgang Amadeus Mozart?",
+      "options": ["Vienna", "Berlino", "Salisburgo", "Praga"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Musica",
+      "explanation": "Mozart nacque a Salisburgo, in Austria, il 27 gennaio 1756."
+    },
+    {
+      "text": "Quale è la capitale della Spagna?",
+      "options": ["Barcellona", "Siviglia", "Madrid", "Valencia"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Madrid è la capitale e la città più grande della Spagna."
+    },
+    {
+      "text": "Chi fu il primo imperatore romano?",
+      "options": ["Giulio Cesare", "Augusto", "Nerone", "Caligola"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Storia",
+      "explanation": "Augusto fu il primo imperatore di Roma, dal 27 a.C. al 14 d.C."
+    },
+    {
+      "text": "Quale è l'osso più lungo del corpo umano?",
+      "options": ["Omero", "Femore", "Tibia", "Perone"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Il femore si estende dall'anca al ginocchio."
+    },
+    {
+      "text": "Quale paese ha inventato la pizza Margherita?",
+      "options": ["Stati Uniti", "Francia", "Spagna", "Italia"],
+      "correctAnswer": 3,
+      "difficulty": "FACILE",
+      "category": "Cultura",
+      "explanation": "La pizza Margherita fu creata a Napoli in onore della regina Margherita nel 1889."
+    },
+    {
+      "text": "Quale è il simbolo chimico del sodio?",
+      "options": ["So", "Na", "Sd", "K"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Il simbolo Na deriva dal latino 'natrium'."
+    },
+    {
+      "text": "Quale fiume attraversa Parigi?",
+      "options": ["Tamigi", "Senna", "Reno", "Danubio"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "La Senna scorre nel cuore di Parigi."
+    },
+    {
+      "text": "Chi ha vinto il Premio Nobel per la Pace nel 1964?",
+      "options": ["Martin Luther King Jr.", "Nelson Mandela", "Mahatma Gandhi", "Madre Teresa"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Storia",
+      "explanation": "Martin Luther King Jr. vinse per la sua lotta non violenta contro la segregazione razziale."
+    },
+    {
+      "text": "Quale pianeta ha gli anelli?",
+      "options": ["Marte", "Giove", "Saturno", "Urano"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "Saturno è famoso per i suoi spettacolari anelli di ghiaccio e roccia."
+    },
+    {
+      "text": "Quale è il cognome di William, principe del Galles?",
+      "options": ["Windsor", "Tudor", "Stuart", "Hannover"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Attualità",
+      "explanation": "La famiglia reale britannica ha il cognome Windsor."
+    },
+    {
+      "text": "Quale città è soprannominata 'La Grande Mela'?",
+      "options": ["Chicago", "Los Angeles", "New York", "Las Vegas"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "New York è chiamata 'The Big Apple'."
+    },
+    {
+      "text": "Chi ha scritto 'Canto di Natale'?",
+      "options": ["Jane Austen", "Charles Dickens", "Mark Twain", "Leo Tolstoy"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Letteratura",
+      "explanation": "Pubblicato da Charles Dickens nel 1843."
+    },
+    {
+      "text": "Quale è il lago più grande d'Italia?",
+      "options": ["Lago di Como", "Lago di Garda", "Lago Maggiore", "Lago Trasimeno"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Il Lago di Garda ha una superficie di 370 km²."
+    },
+    {
+      "text": "Chi ha scoperto la penicillina?",
+      "options": ["Marie Curie", "Alexander Fleming", "Louis Pasteur", "Robert Koch"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Alexander Fleming scoprì la penicillina nel 1928."
+    },
+    {
+      "text": "Quale è la capitale del Canada?",
+      "options": ["Toronto", "Montreal", "Ottawa", "Vancouver"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Ottawa è la capitale federale del Canada."
+    },
+    {
+      "text": "Chi ha composto 'La Quinta Sinfonia'?",
+      "options": ["Mozart", "Bach", "Beethoven", "Chopin"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Musica",
+      "explanation": "Composta da Ludwig van Beethoven tra il 1804 e il 1808."
+    },
+    {
+      "text": "Quale è il metallo più conduttivo?",
+      "options": ["Oro", "Rame", "Argento", "Alluminio"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "L'argento ha la più alta conducibilità elettrica tra i metalli."
+    },
+    {
+      "text": "In quale anno è caduto l'Impero Romano d'Occidente?",
+      "options": ["410 d.C.", "476 d.C.", "500 d.C.", "395 d.C."],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Storia",
+      "explanation": "La data convenzionale è il 476 d.C., con la deposizione di Romolo Augustolo."
+    },
+    {
+      "text": "Quale pittore è famoso per i suoi 'girasoli'?",
+      "options": ["Paul Gauguin", "Vincent van Gogh", "Paul Cézanne", "Henri Matisse"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Arte",
+      "explanation": "Van Gogh dipinse diverse versioni dei Girasoli tra il 1888 e il 1889."
+    },
+    {
+      "text": "Quale è la moneta ufficiale della Cina?",
+      "options": ["Won", "Yen", "Yuan", "Ringgit"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Il renminbi (RMB) è la valuta ufficiale, con unità base chiamata yuan."
+    },
+    {
+      "text": "Chi ha scritto 'Se questo è un uomo'?",
+      "options": ["Italo Calvino", "Alberto Moravia", "Primo Levi", "Cesare Pavese"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Memoriale di Primo Levi sulla sua esperienza nel campo di concentramento di Auschwitz."
+    },
+    {
+      "text": "Quale gas è più abbondante nell'atmosfera terrestre?",
+      "options": ["Ossigeno", "Azoto", "Anidride carbonica", "Argon"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "L'azoto costituisce circa il 78% dell'atmosfera terrestre."
+    },
+    {
+      "text": "In quale città si trova il museo del Louvre?",
+      "options": ["Londra", "Parigi", "Roma", "Berlino"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Arte",
+      "explanation": "Il Louvre è uno dei più grandi musei del mondo, situato a Parigi."
+    },
+    {
+      "text": "Chi è l'autore del 'Principe'?",
+      "options": ["Dante Alighieri", "Francesco Guicciardini", "Niccolò Machiavelli", "Giovanni Boccaccio"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Scritto da Niccolò Machiavelli nel 1513."
+    },
+    {
+      "text": "Quale è il paese con più abitanti al mondo?",
+      "options": ["India", "Stati Uniti", "Cina", "Indonesia"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "La Cina ha oltre 1,4 miliardi di abitanti."
+    }
+  ]
+}

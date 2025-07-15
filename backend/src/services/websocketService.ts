@@ -52,6 +52,10 @@ export class WebSocketService {
     this.startHeartbeatCheck();
   }
 
+  public broadcastToGame(gameId: string, event: string, data: any) {
+    this.io.to(`game:${gameId}`).emit(event, data);
+  }
+
   private setupSocketHandlers() {
     this.io.on('connection', (socket: AuthenticatedSocket) => {
       console.log(`Socket connected: ${socket.id}`);
@@ -348,10 +352,6 @@ export class WebSocketService {
         }
       });
     });
-  }
-
-  private broadcastToGame(gameId: string, event: string, data: any) {
-    this.io.to(`game:${gameId}`).emit(event, data);
   }
 
   private handlePlayerDisconnect(gameId: string, userId: string) {

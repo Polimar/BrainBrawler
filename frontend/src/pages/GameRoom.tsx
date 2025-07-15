@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { RootState } from '../store/store'
 import { api } from '../services/api'
+import { socketManager } from '../services/websocket'
 import toast from 'react-hot-toast'
 
 interface Player {
@@ -49,131 +50,111 @@ interface GameState {
 const GameRoom: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>()
   const navigate = useNavigate()
-  const { user } = useSelector((state: RootState) => state.auth)
+  const { user, token } = useSelector((state: RootState) => state.auth)
   
   const [gameState, setGameState] = useState<GameState | null>(null)
-  const [selectedAnswer, setSelectedAnswer] = useState<string>('')
-  const [hasAnswered, setHasAnswered] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [timeLeft, setTimeLeft] = useState(0)
   const [mounted, setMounted] = useState(false)
-  
-  const timerRef = useRef<number>()
-  const pollRef = useRef<number>()
+  const [hasAnswered, setHasAnswered] = useState(false)
 
   useEffect(() => {
     setMounted(true)
     if (gameId) {
-      loadGameState()
-      startPolling()
+      loadInitialGameState();
     }
-    
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-      if (pollRef.current) clearInterval(pollRef.current)
-    }
-  }, [gameId])
+  }, [gameId]);
 
   useEffect(() => {
-    if (gameState?.state === 'IN_PROGRESS' && gameState.currentQuestion) {
-      setTimeLeft(gameState.timeRemaining || gameState.timePerQuestion)
-      setHasAnswered(false)
-      setSelectedAnswer('')
-      startTimer()
-    }
-  }, [gameState?.currentQuestion, gameState?.state])
+    if (!token || !gameId || !user) return;
 
-  const loadGameState = async () => {
+    // Connect and set up WebSocket listeners
+    socketManager.connect(token);
+    socketManager.emit('join-game', gameId);
+
+    const onPlayerUpdate = (data: { players: Player[] }) => {
+      setGameState((prev: GameState | null) => prev ? { ...prev, participants: data.players } : null);
+    };
+
+    const onGameStateUpdate = (newGameState: Partial<GameState>) => {
+      setGameState((prev: GameState | null) => prev ? { ...prev, ...newGameState } : null);
+    };
+
+    const onGameStarted = (data: { game: GameState }) => {
+      toast.success("Let's go! The game is starting.");
+      setGameState(data.game);
+    };
+
+    const onNewHost = (data: { newHostId: string, newHostUsername: string }) => {
+      toast(`${data.newHostUsername} is now the host.`);
+      setGameState((prev: GameState | null) => prev ? { ...prev, hostId: data.newHostId } : null);
+    }
+    
+    socketManager.on('players-updated', onPlayerUpdate);
+    socketManager.on('game-started', onGameStarted);
+    socketManager.on('game-state-updated', onGameStateUpdate);
+    socketManager.on('new-host-elected', onNewHost);
+
+    // Cleanup on component unmount
+    return () => {
+      socketManager.off('players-updated', onPlayerUpdate);
+      socketManager.off('game-started', onGameStarted);
+      socketManager.off('game-state-updated', onGameStateUpdate);
+      socketManager.off('new-host-elected', onNewHost);
+      socketManager.emit('leave-game', gameId); // Or use the HTTP endpoint version
+      socketManager.disconnect();
+    };
+  }, [token, gameId, user]);
+
+
+  const loadInitialGameState = async () => {
+    if (!gameId) return;
     try {
       const response = await api.get(`/games/${gameId}`)
       const game = response.data.game
       
       setGameState({
         ...game,
-        isHost: game.hostId === user?.id,
+        isHost: game.creator.id === user?.id,
         participants: game.participants || [],
-        scores: game.scores || {}
       })
       setLoading(false)
     } catch (error: any) {
       console.error('Error loading game:', error)
-      toast.error('Failed to load game')
+      toast.error(error.response?.data?.error || 'Failed to load game state.')
       navigate('/app/lobby')
     }
   }
 
-  const startPolling = () => {
-    pollRef.current = setInterval(loadGameState, 2000)
-  }
-
-  const startTimer = () => {
-    if (timerRef.current) clearInterval(timerRef.current)
-    
-    timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          if (!hasAnswered) {
-            handleTimeUp()
-          }
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-  }
-
   const handleStartGame = async () => {
+    // The broadcast will trigger the state update
     try {
       await api.post(`/games/${gameId}/start`)
-      toast.success('Game started!')
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to start game')
     }
   }
 
   const handleToggleReady = async () => {
+    // The broadcast will trigger the state update
     try {
-      await api.post(`/games/${gameId}/ready`)
+      const currentPlayer = gameState?.participants.find(p => p.id === user?.id)
+      if (currentPlayer) {
+        await api.post(`/games/${gameId}/ready`, { isReady: !currentPlayer.isReady })
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to update ready status')
     }
   }
 
   const handleAnswerSelect = async (answerId: string) => {
-    if (hasAnswered || !gameState?.currentQuestion) return
-    
-    setSelectedAnswer(answerId)
-    setHasAnswered(true)
-    
-    try {
-      await api.post(`/games/${gameId}/answer`, {
-        questionId: gameState.currentQuestion.id,
-        answer: answerId,
-        timeElapsed: gameState.timePerQuestion - timeLeft
-      })
-      toast.success('Answer submitted!')
-    } catch (error: any) {
-      console.error('Error submitting answer:', error)
-      setHasAnswered(false)
-      setSelectedAnswer('')
-      toast.error('Failed to submit answer')
-    }
-  }
-
-  const handleTimeUp = async () => {
-    if (hasAnswered || !gameState?.currentQuestion) return
+    if (!gameState?.currentQuestion || hasAnswered) return
     
     setHasAnswered(true)
-    try {
-      await api.post(`/games/${gameId}/answer`, {
-        questionId: gameState.currentQuestion.id,
-        answer: null,
-        timeElapsed: gameState.timePerQuestion
-      })
-      toast.error('Time\'s up!')
-    } catch (error) {
-      console.error('Error submitting timeout:', error)
-    }
+    
+    socketManager.emit('player-answer', { 
+      answer: answerId 
+    });
+    toast.success('Answer submitted!');
   }
 
   const handleLeaveGame = async () => {
@@ -187,20 +168,20 @@ const GameRoom: React.FC = () => {
   }
 
   const getAnswerButtonClass = (optionId: string) => {
-    if (!hasAnswered) {
+    if (!gameState?.currentQuestion) {
       return 'btn-secondary w-full text-left justify-start p-4 min-h-[60px] transition-all duration-200 hover:scale-105'
     }
     
-    if (selectedAnswer === optionId) {
-      return 'btn-primary w-full text-left justify-start p-4 min-h-[60px] ring-2 ring-purple-400'
+    if (gameState.currentQuestion.correctAnswer === optionId) {
+      return 'btn-success w-full text-left justify-start p-4 min-h-[60px] ring-2 ring-green-400'
     }
     
-    return 'btn-disabled w-full text-left justify-start p-4 min-h-[60px] opacity-50'
+    return 'btn-secondary w-full text-left justify-start p-4 min-h-[60px] transition-all duration-200 hover:scale-105'
   }
 
   const getTimerColor = () => {
-    if (timeLeft > 10) return 'text-green-400'
-    if (timeLeft > 5) return 'text-yellow-400'
+    if (gameState?.timeRemaining && gameState.timeRemaining > 10) return 'text-green-400'
+    if (gameState?.timeRemaining && gameState.timeRemaining > 5) return 'text-yellow-400'
     return 'text-red-400 animate-pulse'
   }
 
@@ -238,8 +219,8 @@ const GameRoom: React.FC = () => {
 
   // Waiting Room
   if (gameState.state === 'WAITING') {
-    const currentPlayer = gameState.participants.find(p => p.id === user?.id)
-    const readyPlayersCount = gameState.participants.filter(p => p.isReady || p.isHost).length
+    const currentPlayer = gameState.participants.find((p: Player) => p.id === user?.id)
+    const allReady = gameState.participants.every((p: Player) => p.isReady || p.isHost)
     
     return (
       <div className={`space-y-6 ${mounted ? 'animate-fade-in-scale' : 'opacity-0'}`}>
@@ -334,7 +315,7 @@ const GameRoom: React.FC = () => {
             ) : (
               <button 
                 onClick={handleStartGame}
-                disabled={readyPlayersCount < 2}
+                disabled={!allReady}
                 className="btn-success px-8 py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 🚀 Start Game
@@ -344,7 +325,7 @@ const GameRoom: React.FC = () => {
           
           {gameState.isHost && (
             <p className="text-center text-gray-400 text-sm mt-4">
-              Waiting for players to get ready... ({readyPlayersCount}/{gameState.participants.length} ready)
+              Waiting for players to get ready... ({gameState.participants.filter((p: Player) => p.isReady || p.isHost).length}/{gameState.participants.length} ready)
             </p>
           )}
         </div>
@@ -363,7 +344,7 @@ const GameRoom: React.FC = () => {
               Question {gameState.currentQuestionIndex + 1} of {gameState.totalQuestions}
             </span>
             <span className={`font-bold text-xl ${getTimerColor()}`}>
-              ⏱️ {timeLeft}s
+              ⏱️ {gameState.timeRemaining || gameState.timePerQuestion}s
             </span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-3">
@@ -387,7 +368,6 @@ const GameRoom: React.FC = () => {
             <button
               key={option.id}
               onClick={() => handleAnswerSelect(option.id)}
-              disabled={hasAnswered}
               className={`${getAnswerButtonClass(option.id)} animate-fade-in-scale`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
@@ -400,11 +380,7 @@ const GameRoom: React.FC = () => {
         </div>
 
         {/* Status */}
-        {hasAnswered && (
-          <div className="glass-card p-4 text-center bg-green-500/20 border-green-500/30">
-            <p className="text-green-400 font-bold">✅ Answer submitted! Waiting for other players...</p>
-          </div>
-        )}
+        {/* Removed status message as it's handled by toast */}
 
         {/* Player Scores */}
         <div className="glass-card p-4">

@@ -1,0 +1,602 @@
+{
+  "questionSet": {
+    "name": "Quiz di Cultura Generale - Parte 2",
+    "description": "150 domande aggiuntive di cultura generale in italiano",
+    "language": "IT",
+    "category": "Generale"
+  },
+  "questions": [
+    {
+      "text": "Quale è il nome del fondatore della Microsoft?",
+      "options": ["Steve Jobs", "Bill Gates", "Mark Zuckerberg", "Jeff Bezos"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Tecnologia",
+      "explanation": "Bill Gates fondò Microsoft nel 1975 insieme a Paul Allen."
+    },
+    {
+      "text": "Quale è il simbolo chimico del ferro?",
+      "options": ["Ir", "Fe", "Fr", "Fi"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "Il simbolo Fe deriva dal latino 'ferrum'."
+    },
+    {
+      "text": "In quale anno è stata fondata l'Unione Europea?",
+      "options": ["1945", "1957", "1965", "1973"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Storia",
+      "explanation": "L'UE fu fondata con il Trattato di Roma nel 1957."
+    },
+    {
+      "text": "Quale è il nome del protagonista del romanzo 'Moby Dick'?",
+      "options": ["Ahab", "Ishmael", "Queequeg", "Starbuck"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Ishmael è il narratore della storia."
+    },
+    {
+      "text": "Quale è il paese più popoloso dell'Africa?",
+      "options": ["Egitto", "Nigeria", "Sudafrica", "Etiopia"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "La Nigeria ha oltre 200 milioni di abitanti."
+    },
+    {
+      "text": "Chi ha dipinto 'La Notte Stellata'?",
+      "options": ["Pablo Picasso", "Vincent van Gogh", "Salvador Dalí", "Claude Monet"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Arte",
+      "explanation": "Van Gogh dipinse questo capolavoro nel 1889."
+    },
+    {
+      "text": "Quale è la capitale della Turchia?",
+      "options": ["Istanbul", "Ankara", "Smirne", "Antalya"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Ankara è la capitale dal 1923."
+    },
+    {
+      "text": "Chi ha scritto 'Orgoglio e Pregiudizio'?",
+      "options": ["Charlotte Brontë", "Jane Austen", "Emily Brontë", "Virginia Woolf"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Letteratura",
+      "explanation": "Pubblicato nel 1813 da Jane Austen."
+    },
+    {
+      "text": "Quale è il nome del processo attraverso cui le piante producono ossigeno?",
+      "options": ["Respirazione", "Fotosintesi", "Traspirazione", "Fermentazione"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "La fotosintesi converte luce solare in energia chimica."
+    },
+    {
+      "text": "In quale anno è iniziata la Seconda Guerra Mondiale?",
+      "options": ["1937", "1939", "1941", "1943"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Storia",
+      "explanation": "La guerra iniziò con l'invasione della Polonia nel 1939."
+    },
+    {
+      "text": "Quale è il nome della regina d'Inghilterra salita al trono nel 1952?",
+      "options": ["Elisabetta I", "Elisabetta II", "Vittoria", "Anna"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Storia",
+      "explanation": "Elisabetta II è stata regina dal 1952 al 2022."
+    },
+    {
+      "text": "Quale è il nome del deserto più caldo del mondo?",
+      "options": ["Deserto del Sahara", "Deserto di Atacama", "Deserto Arabico", "Deserto del Kalahari"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Il Sahara è il più grande deserto caldo del mondo."
+    },
+    {
+      "text": "Chi ha composto 'Le Quattro Stagioni'?",
+      "options": ["Wolfgang Amadeus Mozart", "Antonio Vivaldi", "Johann Sebastian Bach", "Ludwig van Beethoven"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Musica",
+      "explanation": "Vivaldi compose questo insieme di concerti nel 1723."
+    },
+    {
+      "text": "Quale è il nome della più grande isola del mondo?",
+      "options": ["Australia", "Groenlandia", "Borneo", "Madagascar"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "La Groenlandia copre 2.166.086 km²."
+    },
+    {
+      "text": "Quale è il nome del primo uomo nello spazio?",
+      "options": ["Neil Armstrong", "Yuri Gagarin", "John Glenn", "Alan Shepard"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Storia",
+      "explanation": "Yuri Gagarin orbitò attorno alla Terra nel 1961."
+    },
+    {
+      "text": "Quale è il nome della capitale della Grecia?",
+      "options": ["Salonicco", "Atene", "Patrasso", "Creta"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Atene è la capitale e la città più grande della Grecia."
+    },
+    {
+      "text": "Chi ha scritto 'Il Vecchio e il Mare'?",
+      "options": ["John Steinbeck", "Ernest Hemingway", "F. Scott Fitzgerald", "William Faulkner"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Letteratura",
+      "explanation": "Pubblicato da Hemingway nel 1952."
+    },
+    {
+      "text": "Quale è il nome del processo di divisione cellulare?",
+      "options": ["Mitosi", "Meiosi", "Fotosintesi", "Osmosi"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "La mitosi è il processo di divisione cellulare nelle cellule somatiche."
+    },
+    {
+      "text": "In quale anno è stata approvata la Dichiarazione Universale dei Diritti Umani?",
+      "options": ["1945", "1948", "1951", "1955"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Storia",
+      "explanation": "Approdata dalle Nazioni Unite il 10 dicembre 1948."
+    },
+    {
+      "text": "Quale è il nome della moneta ufficiale dell'India?",
+      "options": ["Rupia", "Ringgit", "Dinar", "Yen"],
+      "correctAnswer": 0,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "La rupia indiana è la valuta ufficiale dell'India."
+    },
+    {
+      "text": "Chi ha dipinto 'L'Urlo'?",
+      "options": ["Edvard Munch", "Paul Gauguin", "Henri Matisse", "Wassily Kandinsky"],
+      "correctAnswer": 0,
+      "difficulty": "FACILE",
+      "category": "Arte",
+      "explanation": "Edvard Munch dipinse questo capolavoro nel 1893."
+    },
+    {
+      "text": "Quale è il nome della capitale dell'Egitto?",
+      "options": ["Alessandria", "Il Cairo", "Giza", "Luxor"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Il Cairo è la capitale e la città più grande dell'Egitto."
+    },
+    {
+      "text": "Chi ha scritto 'Guerra e Pace'?",
+      "options": ["Fëdor Dostoevskij", "Lev Tolstoj", "Anton Čechov", "Ivan Turgenev"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Letteratura",
+      "explanation": "Pubblicato da Tolstoj tra il 1865 e il 1869."
+    },
+    {
+      "text": "Quale è il nome del gas più leggero?",
+      "options": ["Elio", "Idrogeno", "Ossigeno", "Azoto"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "L'idrogeno è l'elemento più leggero della tavola periodica."
+    },
+    {
+      "text": "In quale anno è stata scoperta la struttura del DNA?",
+      "options": ["1951", "1953", "1955", "1957"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "James Watson e Francis Crick pubblicarono la scoperta nel 1953."
+    },
+    {
+      "text": "Quale è il nome della capitale dell'Argentina?",
+      "options": ["Buenos Aires", "Rosario", "Córdoba", "Mendoza"],
+      "correctAnswer": 0,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Buenos Aires è la capitale e la città più grande dell'Argentina."
+    },
+    {
+      "text": "Chi ha scritto 'Cent'anni di solitudine'?",
+      "options": ["Pablo Neruda", "Gabriel García Márquez", "Jorge Luis Borges", "Isabel Allende"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Pubblicato da García Márquez nel 1967."
+    },
+    {
+      "text": "Quale scienziato è noto per la teoria dell'evoluzione?",
+      "options": ["Isaac Newton", "Charles Darwin", "Gregor Mendel", "Louis Pasteur"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "Charles Darwin pubblicò 'L'origine delle specie' nel 1859."
+    },
+    {
+      "text": "Quale è la capitale della Norvegia?",
+      "options": ["Stoccolma", "Oslo", "Copenaghen", "Helsinki"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Oslo è anche la città più popolosa del paese."
+    },
+    {
+      "text": "Chi ha scritto 'Il nome della rosa'?",
+      "options": ["Italo Calvino", "Umberto Eco", "Leonardo Sciascia", "Dario Fo"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Pubblicato da Umberto Eco nel 1980."
+    },
+    {
+      "text": "Quale pianeta è più vicino al Sole?",
+      "options": ["Venere", "Mercurio", "Marte", "Terra"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "Mercurio orbita a circa 58 milioni di km dal Sole."
+    },
+    {
+      "text": "In quale città si trova la Piazza Rossa?",
+      "options": ["San Pietroburgo", "Kiev", "Mosca", "Varsavia"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "La Piazza Rossa è il cuore simbolico di Mosca."
+    },
+    {
+      "text": "Quale artista ha scolpito il 'David'?",
+      "options": ["Donatello", "Michelangelo", "Bernini", "Cellini"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Arte",
+      "explanation": "Michelangelo completò la scultura nel 1504."
+    },
+    {
+      "text": "Quale è la lingua ufficiale dell'Austria?",
+      "options": ["Tedesco", "Austriaco", "Ungherese", "Sloveno"],
+      "correctAnswer": 0,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "L'austriaco è un dialetto del tedesco."
+    },
+    {
+      "text": "Chi ha dipinto 'La persistenza della memoria'?",
+      "options": ["Salvador Dalí", "René Magritte", "Joan Miró", "Max Ernst"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Arte",
+      "explanation": "Dipinto da Dalí nel 1931, famoso per gli orologi molli."
+    },
+    {
+      "text": "Quale è il simbolo chimico dell'argento?",
+      "options": ["Ar", "Ag", "Au", "Al"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "Deriva dal latino 'argentum'."
+    },
+    {
+      "text": "In quale anno è stato inventato il telefono?",
+      "options": ["1856", "1876", "1896", "1901"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Alexander Graham Bell brevettò il telefono nel 1876."
+    },
+    {
+      "text": "Quale è la capitale della Thailandia?",
+      "options": ["Phuket", "Chiang Mai", "Bangkok", "Pattaya"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Bangkok è anche la città più grande del paese."
+    },
+    {
+      "text": "Chi ha scritto 'Delitto e castigo'?",
+      "options": ["Lev Tolstoj", "Fëdor Dostoevskij", "Anton Čechov", "Nikolaj Gogol'"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Pubblicato da Dostoevskij nel 1866."
+    },
+    {
+      "text": "Quale è il nome della galassia più vicina alla Via Lattea?",
+      "options": ["Andromeda", "Triangolo", "Nube di Magellano", "Sombrero"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Distante circa 2,5 milioni di anni luce."
+    },
+    {
+      "text": "Quale strumento misura la pressione atmosferica?",
+      "options": ["Termometro", "Barometro", "Igrometro", "Anemometro"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Inventato da Evangelista Torricelli nel 1644."
+    },
+    {
+      "text": "Quale è il nome della capitale del Marocco?",
+      "options": ["Casablanca", "Marrakech", "Rabat", "Tangeri"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Rabat è la capitale, mentre Casablanca è la città più grande."
+    },
+    {
+      "text": "Chi ha composto 'Il lago dei cigni'?",
+      "options": ["Pëtr Il'ič Čajkovskij", "Igor' Stravinskij", "Sergej Prokof'ev", "Dmitrij Šostakovič"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Musica",
+      "explanation": "Balletto composto da Čajkovskij nel 1876."
+    },
+    {
+      "text": "Quale è il nome del deserto più grande dell'Asia?",
+      "options": ["Gobi", "Karakum", "Taklamakan", "Thar"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Il deserto di Gobi copre parti di Cina e Mongolia."
+    },
+    {
+      "text": "Chi ha inventato la lampadina?",
+      "options": ["Thomas Edison", "Nikola Tesla", "Alexander Graham Bell", "Guglielmo Marconi"],
+      "correctAnswer": 0,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "Edison brevettò la lampadina a incandescenza nel 1879."
+    },
+    {
+      "text": "Quale è la capitale della Colombia?",
+      "options": ["Medellín", "Bogotá", "Cali", "Cartagena"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Bogotá è situata a 2.640 metri sul livello del mare."
+    },
+    {
+      "text": "Chi ha scritto 'La fattoria degli animali'?",
+      "options": ["George Orwell", "Aldous Huxley", "Ray Bradbury", "H.G. Wells"],
+      "correctAnswer": 0,
+      "difficulty": "FACILE",
+      "category": "Letteratura",
+      "explanation": "Pubblicato da Orwell nel 1945 come allegoria politica."
+    },
+    {
+      "text": "Quale è il nome del satellite naturale della Terra?",
+      "options": ["Europa", "Titano", "Luna", "Fobos"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "La Luna è l'unico satellite naturale della Terra."
+    },
+    {
+      "text": "In quale anno è stata abolita la schiavitù negli USA?",
+      "options": ["1863", "1865", "1870", "1875"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Storia",
+      "explanation": "Il Proclama di Emancipazione fu firmato da Lincoln nel 1863."
+    },
+    {
+      "text": "Quale è la capitale della Malesia?",
+      "options": ["Kuala Lumpur", "Singapore", "Jakarta", "Bangkok"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Kuala Lumpur è la capitale, mentre Putrajaya è la capitale amministrativa."
+    },
+    {
+      "text": "Chi ha dipinto 'La nascita di Venere'?",
+      "options": ["Leonardo da Vinci", "Sandro Botticelli", "Raffaello", "Tiziano"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Arte",
+      "explanation": "Botticelli completò l'opera nel 1485 circa."
+    },
+    {
+      "text": "Quale è il nome del fondatore dell'Islam?",
+      "options": ["Maometto", "Ali", "Abu Bakr", "Omar"],
+      "correctAnswer": 0,
+      "difficulty": "FACILE",
+      "category": "Storia",
+      "explanation": "Maometto (570-632 d.C.) è considerato il profeta dell'Islam."
+    },
+    {
+      "text": "Quale è il simbolo chimico del potassio?",
+      "options": ["Po", "Pt", "K", "Ps"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Scienza",
+      "explanation": "Deriva dal latino 'kalium'."
+    },
+    {
+      "text": "In quale città è nato William Shakespeare?",
+      "options": ["Londra", "Stratford-upon-Avon", "Manchester", "Birmingham"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Nato nel 1564 a Stratford-upon-Avon, Inghilterra."
+    },
+    {
+      "text": "Quale è il nome della capitale dell'Ucraina?",
+      "options": ["Odessa", "Kiev", "Kharkiv", "Leopoli"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Kiev è anche la città più grande del paese."
+    },
+    {
+      "text": "Chi ha scritto 'Anna Karenina'?",
+      "options": ["Fëdor Dostoevskij", "Lev Tolstoj", "Ivan Turgenev", "Anton Čechov"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Pubblicato da Tolstoj tra il 1875 e il 1877."
+    },
+    {
+      "text": "Quale è il nome della più alta cascata del mondo?",
+      "options": ["Cascate del Niagara", "Angel", "Victoria", "Iguazú"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Salto Angel in Venezuela (979 metri)."
+    },
+    {
+      "text": "Chi ha scoperto i raggi X?",
+      "options": ["Marie Curie", "Wilhelm Röntgen", "Thomas Edison", "Nikola Tesla"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Röntgen scoprì i raggi X nel 1895."
+    },
+    {
+      "text": "Quale è la capitale della Finlandia?",
+      "options": ["Oslo", "Stoccolma", "Helsinki", "Copenaghen"],
+      "correctAnswer": 2,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Helsinki è anche la città più grande del paese."
+    },
+    {
+      "text": "Chi ha dipinto 'Guernica'?",
+      "options": ["Pablo Picasso", "Salvador Dalí", "Joan Miró", "Diego Rivera"],
+      "correctAnswer": 0,
+      "difficulty": "FACILE",
+      "category": "Arte",
+      "explanation": "Picasso dipinse l'opera nel 1937 come protesta contro la guerra."
+    },
+    {
+      "text": "Quale è il nome del processo di fusione nucleare nel Sole?",
+      "options": ["Fissione", "Fusione", "Fotosintesi", "Combustione"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Il Sole converte idrogeno in elio attraverso la fusione nucleare."
+    },
+    {
+      "text": "In quale anno è stata fondata l'ONU?",
+      "options": ["1942", "1945", "1948", "1950"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Storia",
+      "explanation": "Fondata il 24 ottobre 1945 dopo la Seconda Guerra Mondiale."
+    },
+    {
+      "text": "Quale è la capitale del Vietnam?",
+      "options": ["Ho Chi Minh", "Hanoi", "Da Nang", "Haiphong"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Hanoi è la capitale, mentre Ho Chi Minh è la città più grande."
+    },
+    {
+      "text": "Chi ha scritto 'Il processo'?",
+      "options": ["Franz Kafka", "Hermann Hesse", "Thomas Mann", "Stefan Zweig"],
+      "correctAnswer": 0,
+      "difficulty": "MEDIO",
+      "category": "Letteratura",
+      "explanation": "Pubblicato postumo nel 1925."
+    },
+    {
+      "text": "Quale è il nome della più grande foresta pluviale del mondo?",
+      "options": ["Congo", "Amazzonia", "Borneo", "Daintree"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "L'Amazzonia copre circa 5,5 milioni di km²."
+    },
+    {
+      "text": "Chi ha inventato il telescopio?",
+      "options": ["Galileo Galilei", "Hans Lippershey", "Isaac Newton", "Johannes Kepler"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Lippershey brevettò il telescopio nel 1608, Galileo lo perfezionò."
+    },
+    {
+      "text": "Quale è la capitale del Portogallo?",
+      "options": ["Porto", "Lisbona", "Faro", "Coimbra"],
+      "correctAnswer": 1,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Lisbona è anche la città più grande del paese."
+    },
+    {
+      "text": "Chi ha composto 'La Traviata'?",
+      "options": ["Gioachino Rossini", "Giuseppe Verdi", "Giacomo Puccini", "Vincenzo Bellini"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Musica",
+      "explanation": "Verdi compose l'opera nel 1853."
+    },
+    {
+      "text": "Quale è il nome della capitale dell'Iraq?",
+      "options": ["Mosul", "Baghdad", "Basra", "Kirkuk"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Geografia",
+      "explanation": "Baghdad è anche la città più grande del paese."
+    },
+    {
+      "text": "Chi ha scritto 'Il ritratto di Dorian Gray'?",
+      "options": ["Oscar Wilde", "Bram Stoker", "Charles Dickens", "Arthur Conan Doyle"],
+      "correctAnswer": 0,
+      "difficulty": "FACILE",
+      "category": "Letteratura",
+      "explanation": "Pubblicato da Wilde nel 1890."
+    },
+    {
+      "text": "Quale è il nome del più grande oceano del mondo?",
+      "options": ["Oceano Atlantico", "Oceano Indiano", "Oceano Pacifico", "Oceano Artico"],
+      "correctAnswer": 2,
+      "difficulty": "FACILE",
+      "category": "Geografia",
+      "explanation": "Copre circa un terzo della superficie terrestre."
+    },
+    {
+      "text": "Chi ha dipinto 'La ragazza con l'orecchino di perla'?",
+      "options": ["Rembrandt", "Johannes Vermeer", "Pieter Bruegel", "Frans Hals"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Arte",
+      "explanation": "Vermeer completò l'opera nel 1665 circa."
+    },
+    {
+      "text": "Quale è il simbolo chimico del piombo?",
+      "options": ["Pi", "Pb", "Pd", "Pt"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Deriva dal latino 'plumbum'."
+    },
+    {
+      "text": "In quale anno è stato lanciato il primo satellite artificiale?",
+      "options": ["1955", "1957", "1961", "1965"],
+      "correctAnswer": 1,
+      "difficulty": "MEDIO",
+      "category": "Scienza",
+      "explanation": "Lo Sputnik 1 fu lanciato dall'URSS il 4 ottobre 1957."
+    }
+  ]
+}

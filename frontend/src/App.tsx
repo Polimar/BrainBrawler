@@ -19,12 +19,13 @@ import Leaderboard from './pages/Leaderboard'
 import Friends from './pages/Friends'
 import QuestionSets from './pages/QuestionSets'
 import CreateGame from './pages/CreateGame'
+import AdminPanel from './pages/AdminPanel';
 
 // Layout
 import Layout from './components/Layout/Layout'
 
 function App() {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch<AppDispatch>()
 
   useEffect(() => {
@@ -67,6 +68,9 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="shop" element={<Shop />} />
           <Route path="leaderboard" element={<Leaderboard />} />
+          {user?.accountType === 'ADMIN' && (
+            <Route path="admin" element={<AdminPanel />} />
+          )}
         </Route>
         
         {/* Catch all - redirect to appropriate page */}

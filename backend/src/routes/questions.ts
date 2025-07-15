@@ -1,8 +1,12 @@
 import express from 'express';
 import { 
+  createQuestionSet,
+  getQuestionSets,
+  getQuestionSet,
+  updateQuestionSet,
+  deleteQuestionSet,
   createQuestion,
   getQuestions,
-  getQuestion,
   updateQuestion,
   deleteQuestion,
   getRandomQuestions
@@ -14,13 +18,17 @@ const router = express.Router();
 // All question routes require authentication
 router.use(authenticateToken);
 
-// Public routes (for authenticated users)
-router.get('/', getQuestions);
-router.get('/random', getRandomQuestions);
-router.get('/:questionId', getQuestion);
+// Question Set Routes
+router.post('/sets', requireAccountType('PREMIUM', 'ADMIN'), createQuestionSet);
+router.get('/sets', getQuestionSets);
+router.get('/sets/:id', getQuestionSet);
+router.put('/sets/:id', updateQuestionSet); // Permission check is done in controller
+router.delete('/sets/:id', deleteQuestionSet); // Permission check is done in controller
 
-// Routes requiring premium or admin access
-router.post('/', requireAccountType('PREMIUM', 'ADMIN'), createQuestion);
+// Question Routes
+router.post('/', createQuestion); // Permission check is done in controller
+router.get('/', getQuestions);
+router.get('/:questionId', getQuestions);
 router.put('/:questionId', updateQuestion); // Permission check is done in controller
 router.delete('/:questionId', deleteQuestion); // Permission check is done in controller
 

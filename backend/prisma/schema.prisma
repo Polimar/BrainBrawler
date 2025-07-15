@@ -40,10 +40,10 @@ model User {
   createdGames  Game[] @relation("GameCreator")
   
   // Friendship relations
-  sentFriendRequests     FriendRequest[] @relation("SentRequests")
-  receivedFriendRequests FriendRequest[] @relation("ReceivedRequests")
-  friendships1           Friendship[]    @relation("User1Friendships")
-  friendships2           Friendship[]    @relation("User2Friendships")
+  sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
+  receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
+  friendships1           Friendship[]    @relation("FriendshipsAsUser1")
+  friendships2           Friendship[]    @relation("FriendshipsAsUser2")
   
   // Premium features
   llmConfigs    LLMConfig[]
@@ -78,7 +78,8 @@ model QuestionSet {
   description String?
   category    String
   difficulty  Difficulty
-  isPublic    Boolean    @default(true)
+  language    String     @default("EN") // Add language field, default to English
+  isPublic    Boolean    @default(true) // Renamed from visibility for simplicity, can be 'PUBLIC' or 'PRIVATE' (implicit)
   isPremium   Boolean    @default(false)
   ownerId     String?    // null for system question sets
   questions   Question[]
@@ -97,14 +98,13 @@ model Question {
   questionSetId String
   questionSet   QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
   text          String
-  options       Json        // Array of {id, text}
-  correctAnswer String
-  timeLimit     Int         @default(30)
-  points        Int         @default(100)
-  order         Int
-  explanation   String?     // Optional explanation for the answer
+  options       Json        // Storing options as JSON: [{ "text": "Option 1" }, { "text": "Option 2" }]
+  correctAnswer Int         // Index of the correct answer in the options array
+  difficulty    Difficulty  @default(MEDIUM)
+  category      String
+  explanation   String?
   
-  @@index([questionSetId, order])
+  @@index([questionSetId])
 }
 
 model Game {
@@ -203,8 +203,8 @@ model FriendRequest {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   
-  sender     User @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver   User @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
   
   @@unique([senderId, receiverId])
   @@index([receiverId, status])
@@ -212,13 +212,14 @@ model FriendRequest {
 
 model Friendship {
   id        String   @id @default(cuid())
+  user1     User     @relation("FriendshipsAsUser1", fields: [user1Id], references: [id], onDelete: Cascade)
   user1Id   String
+  user2     User     @relation("FriendshipsAsUser2", fields: [user2Id], references: [id], onDelete: Cascade)
   user2Id   String
+  status    String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, BLOCKED
   createdAt DateTime @default(now())
-  
-  user1 User @relation("User1Friendships", fields: [user1Id], references: [id], onDelete: Cascade)
-  user2 User @relation("User2Friendships", fields: [user2Id], references: [id], onDelete: Cascade)
-  
+  updatedAt DateTime @updatedAt
+
   @@unique([user1Id, user2Id])
   @@index([user1Id])
   @@index([user2Id])

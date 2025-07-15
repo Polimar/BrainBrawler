@@ -2,54 +2,146 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { AuthenticatedRequest } from '../middleware/auth';
 
-interface CreateQuestionRequest {
-  questionSetId: string;
-  text: string;
-  options: string[];
-  correctAnswer: string;
-  explanation?: string;
-  timeLimit?: number;
-  points?: number;
-  order?: number;
-}
+// ============================================
+// Question Set Management
+// ============================================
 
-interface UpdateQuestionRequest {
-  text?: string;
-  options?: string[];
-  correctAnswer?: string;
-  explanation?: string;
-  timeLimit?: number;
-  points?: number;
-  order?: number;
-}
+export const createQuestionSet = async (req: AuthenticatedRequest<any, any, any>, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+
+  const { name, description, category, difficulty, isPublic, isPremium } = req.body;
+  if (!name || !category || !difficulty) {
+    return res.status(400).json({ error: 'Name, category, and difficulty are required.' });
+  }
+
+  try {
+    const questionSet = await prisma.questionSet.create({
+      data: {
+        name,
+        description,
+        category,
+        difficulty,
+        isPublic,
+        isPremium,
+        ownerId: req.user.id,
+      },
+    });
+    res.status(201).json(questionSet);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create question set' });
+  }
+};
+
+export const getQuestionSets = async (req: AuthenticatedRequest<any, any, any>, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+
+  try {
+    const questionSets = await prisma.questionSet.findMany({
+      where: {
+        OR: [
+          { isPublic: true },
+          { ownerId: req.user.id },
+        ],
+      },
+      include: {
+        _count: {
+          select: { questions: true },
+        },
+        owner: {
+          select: { username: true }
+        }
+      },
+    });
+    res.json(questionSets);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve question sets' });
+  }
+};
+
+export const getQuestionSet = async (req: AuthenticatedRequest<any, any, any>, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+
+  const { id } = req.params;
+  try {
+    const questionSet = await prisma.questionSet.findFirst({
+      where: { id, OR: [{ isPublic: true }, { ownerId: req.user.id }] },
+      include: {
+        questions: true, // No longer ordering by 'order'
+        owner: { select: { username: true } }
+      },
+    });
+
+    if (!questionSet) {
+      return res.status(404).json({ error: 'Question set not found or access denied' });
+    }
+    res.json(questionSet);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve question set' });
+  }
+};
+
+export const updateQuestionSet = async (req: AuthenticatedRequest<any, any, any>, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+
+  const { id } = req.params;
+  const { name, description, category, difficulty, isPublic } = req.body;
+
+  try {
+    const questionSet = await prisma.questionSet.findUnique({
+      where: { id },
+    });
+
+    if (!questionSet || questionSet.ownerId !== req.user.id) {
+      return res.status(404).json({ error: 'Question set not found or you are not the owner' });
+    }
+
+    const updatedQuestionSet = await prisma.questionSet.update({
+      where: { id },
+      data: { name, description, category, difficulty, isPublic },
+    });
+    res.json(updatedQuestionSet);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update question set' });
+  }
+};
+
+export const deleteQuestionSet = async (req: AuthenticatedRequest<any, any, any>, res: Response) => {
+  if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+  
+  const { id } = req.params;
+  try {
+    const questionSet = await prisma.questionSet.findUnique({
+      where: { id },
+    });
+
+    if (!questionSet || questionSet.ownerId !== req.user.id) {
+      return res.status(404).json({ error: 'Question set not found or you are not the owner' });
+    }
+    
+    await prisma.questionSet.delete({ where: { id } });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete question set' });
+  }
+};
+
+
+// ============================================
+// Question Management within a Set
+// ============================================
 
 // Create a new question
-export const createQuestion = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const createQuestion = async (req: AuthenticatedRequest<any, any, any>, res: Response): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({ error: 'Authentication required' });
       return;
     }
 
-    const { 
-      questionSetId,
-      text, 
-      options, 
-      correctAnswer, 
-      explanation,
-      timeLimit = 30,
-      points = 100,
-      order = 1
-    }: CreateQuestionRequest = req.body;
+    const { questionSetId, text, options, correctAnswer, explanation, difficulty, category } = req.body;
 
-    // Validation
-    if (!questionSetId || !text || !options || !correctAnswer) {
-      res.status(400).json({ error: 'QuestionSetId, text, options, and correctAnswer are required' });
-      return;
-    }
-
-    if (!Array.isArray(options) || options.length < 2) {
-      res.status(400).json({ error: 'At least 2 options are required' });
+    if (!questionSetId || !text || !options || correctAnswer === undefined || !difficulty || !category) {
+      res.status(400).json({ error: 'All fields are required' });
       return;
     }
 
@@ -68,35 +160,15 @@ export const createQuestion = async (req: AuthenticatedRequest, res: Response): 
       data: {
         questionSetId,
         text,
-        options: JSON.stringify(options),
-        correctAnswer,
+        options,
+        correctAnswer: parseInt(correctAnswer, 10),
         explanation,
-        timeLimit,
-        points,
-        order,
+        difficulty,
+        category,
       },
-      select: {
-        id: true,
-        text: true,
-        options: true,
-        correctAnswer: true,
-        explanation: true,
-        timeLimit: true,
-        points: true,
-        order: true,
-      }
     });
 
-    // Parse options for response
-    const responseQuestion = {
-      ...question,
-      options: JSON.parse(question.options as string),
-    };
-
-    res.status(201).json({
-      message: 'Question created successfully',
-      question: responseQuestion
-    });
+    res.status(201).json({ message: 'Question created successfully', question });
 
   } catch (error) {
     console.error('Create question error:', error);
@@ -105,7 +177,7 @@ export const createQuestion = async (req: AuthenticatedRequest, res: Response): 
 };
 
 // Get questions with filters and pagination
-export const getQuestions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getQuestions = async (req: AuthenticatedRequest<any, any, any>, res: Response): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({ error: 'Authentication required' });
@@ -153,9 +225,8 @@ export const getQuestions = async (req: AuthenticatedRequest, res: Response): Pr
           options: true,
           correctAnswer: true,
           explanation: true,
-          timeLimit: true,
-          points: true,
-          order: true,
+          difficulty: true,
+          category: true,
           questionSet: {
             select: {
               id: true,
@@ -164,7 +235,6 @@ export const getQuestions = async (req: AuthenticatedRequest, res: Response): Pr
             }
           }
         },
-        orderBy: { order: 'asc' },
         skip,
         take: limitNum,
       }),
@@ -194,7 +264,7 @@ export const getQuestions = async (req: AuthenticatedRequest, res: Response): Pr
 };
 
 // Get a specific question by ID
-export const getQuestion = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getQuestion = async (req: AuthenticatedRequest<any, any, any>, res: Response): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({ error: 'Authentication required' });
@@ -211,9 +281,8 @@ export const getQuestion = async (req: AuthenticatedRequest, res: Response): Pro
         options: true,
         correctAnswer: true,
         explanation: true,
-        timeLimit: true,
-        points: true,
-        order: true,
+        difficulty: true,
+        category: true,
         questionSet: {
           select: {
             id: true,
@@ -244,7 +313,7 @@ export const getQuestion = async (req: AuthenticatedRequest, res: Response): Pro
 };
 
 // Update a question
-export const updateQuestion = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const updateQuestion = async (req: AuthenticatedRequest<any, any, any>, res: Response): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({ error: 'Authentication required' });
@@ -257,10 +326,9 @@ export const updateQuestion = async (req: AuthenticatedRequest, res: Response): 
       options, 
       correctAnswer, 
       explanation,
-      timeLimit,
-      points,
-      order
-    }: UpdateQuestionRequest = req.body;
+      difficulty,
+      category
+    } = req.body;
 
     // Check if question exists
     const existingQuestion = await prisma.question.findUnique({
@@ -283,11 +351,10 @@ export const updateQuestion = async (req: AuthenticatedRequest, res: Response): 
       }
       updateData.options = JSON.stringify(options);
     }
-    if (correctAnswer !== undefined) updateData.correctAnswer = correctAnswer;
+    if (correctAnswer !== undefined) updateData.correctAnswer = parseInt(correctAnswer, 10);
     if (explanation !== undefined) updateData.explanation = explanation;
-    if (timeLimit !== undefined) updateData.timeLimit = timeLimit;
-    if (points !== undefined) updateData.points = points;
-    if (order !== undefined) updateData.order = order;
+    if (difficulty !== undefined) updateData.difficulty = difficulty;
+    if (category !== undefined) updateData.category = category;
 
     // Update question
     const updatedQuestion = await prisma.question.update({
@@ -299,9 +366,8 @@ export const updateQuestion = async (req: AuthenticatedRequest, res: Response): 
         options: true,
         correctAnswer: true,
         explanation: true,
-        timeLimit: true,
-        points: true,
-        order: true,
+        difficulty: true,
+        category: true,
       }
     });
 
@@ -323,7 +389,7 @@ export const updateQuestion = async (req: AuthenticatedRequest, res: Response): 
 };
 
 // Delete a question
-export const deleteQuestion = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const deleteQuestion = async (req: AuthenticatedRequest<any, any, any>, res: Response): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({ error: 'Authentication required' });
@@ -357,7 +423,7 @@ export const deleteQuestion = async (req: AuthenticatedRequest, res: Response): 
 };
 
 // Get random questions (for game creation)
-export const getRandomQuestions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getRandomQuestions = async (req: AuthenticatedRequest<any, any, any>, res: Response): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({ error: 'Authentication required' });
@@ -381,21 +447,15 @@ export const getRandomQuestions = async (req: AuthenticatedRequest, res: Respons
     const questions = await prisma.question.findMany({
       where: { questionSetId: questionSetId as string },
       take: questionCount,
-      orderBy: { order: 'asc' },
-      select: {
-        id: true,
-        text: true,
-        options: true,
-        correctAnswer: true,
-        explanation: true,
-        timeLimit: true,
-        points: true,
-        order: true,
-      }
+      // orderBy removed, randomness will be handled by shuffling the result array
     });
 
+    // Simple shuffle implementation
+    const shuffled = questions.sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, questionCount);
+
     // Parse options for all questions
-    const responseQuestions = questions.map((q: any) => ({
+    const responseQuestions = selected.map((q: any) => ({
       ...q,
       options: JSON.parse(q.options as string),
     }));
@@ -407,3 +467,5 @@ export const getRandomQuestions = async (req: AuthenticatedRequest, res: Respons
     res.status(500).json({ error: 'Internal server error' });
   }
 }; 
+
+// The uploadQuestionSet function has been removed. 

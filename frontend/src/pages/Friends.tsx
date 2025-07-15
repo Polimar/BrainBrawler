@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { api } from '../services/api'
 import { 
   UserPlus, 
   Users, 
@@ -40,30 +41,23 @@ export default function Friends() {
   const [sentRequests, setSentRequests] = useState<FriendRequest[]>([])
   const [searchResults, setSearchResults] = useState<User[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}/api`
-
-  const getAuthHeaders = () => ({
-    'Authorization': `Bearer ${localStorage.getItem('brainbrawler_token')}`,
-    'Content-Type': 'application/json'
-  })
+  const [loading, setLoading] = useState(true) // Start with loading true for initial fetch
 
   // Load friends on component mount
   useEffect(() => {
-    loadFriends()
-    loadFriendRequests()
+    const loadInitialData = async () => {
+      setLoading(true)
+      await Promise.all([loadFriends(), loadFriendRequests()])
+      setLoading(false)
+    }
+    loadInitialData()
   }, [])
 
   const loadFriends = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/friends`, {
-        headers: getAuthHeaders()
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setFriends(data.friends || [])
+      const response = await api.get('/friends')
+      if (response.data) {
+        setFriends(response.data.friends || [])
       }
     } catch (error) {
       console.error('Error loading friends:', error)
@@ -73,18 +67,16 @@ export default function Friends() {
   const loadFriendRequests = async () => {
     try {
       const [receivedResponse, sentResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/friends/requests`, { headers: getAuthHeaders() }),
-        fetch(`${API_BASE_URL}/friends/sent-requests`, { headers: getAuthHeaders() })
+        api.get('/friends/requests'),
+        api.get('/friends/sent-requests')
       ])
 
-      if (receivedResponse.ok) {
-        const receivedData = await receivedResponse.json()
-        setReceivedRequests(receivedData.requests || [])
+      if (receivedResponse.data) {
+        setReceivedRequests(receivedResponse.data.requests || [])
       }
 
-      if (sentResponse.ok) {
-        const sentData = await sentResponse.json()
-        setSentRequests(sentData.requests || [])
+      if (sentResponse.data) {
+        setSentRequests(sentResponse.data.requests || [])
       }
     } catch (error) {
       console.error('Error loading friend requests:', error)
@@ -99,15 +91,9 @@ export default function Friends() {
 
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/friends/search`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ query })
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setSearchResults(data.users || [])
+      const response = await api.post('/friends/search', { query })
+      if (response.data) {
+        setSearchResults(response.data.users || [])
       }
     } catch (error) {
       console.error('Error searching users:', error)
@@ -118,68 +104,40 @@ export default function Friends() {
 
   const sendFriendRequest = async (userId: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/friends/request`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ userId })
-      })
-
-      if (response.ok) {
+      await api.post('/friends/request', { userId })
         toast.success('Friend request sent!')
         // Update search results to show pending status
-        setSearchResults(prev => 
-          prev.map(user => 
+      setSearchResults((prev: User[]) => 
+        prev.map((user: User) => 
             user.id === userId 
               ? { ...user, relationshipStatus: 'pending' }
               : user
           )
         )
         loadFriendRequests()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to send friend request')
-      }
-    } catch (error) {
-      toast.error('Failed to send friend request')
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to send friend request')
     }
   }
 
   const acceptFriendRequest = async (requestId: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/friends/accept/${requestId}`, {
-        method: 'POST',
-        headers: getAuthHeaders()
-      })
-
-      if (response.ok) {
+      await api.post(`/friends/accept/${requestId}`)
         toast.success('Friend request accepted!')
         loadFriends()
         loadFriendRequests()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to accept friend request')
-      }
-    } catch (error) {
-      toast.error('Failed to accept friend request')
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to accept friend request')
     }
   }
 
   const rejectFriendRequest = async (requestId: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/friends/reject/${requestId}`, {
-        method: 'POST',
-        headers: getAuthHeaders()
-      })
-
-      if (response.ok) {
+      await api.post(`/friends/reject/${requestId}`)
         toast.success('Friend request rejected')
         loadFriendRequests()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to reject friend request')
-      }
-    } catch (error) {
-      toast.error('Failed to reject friend request')
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to reject friend request')
     }
   }
 
@@ -187,20 +145,11 @@ export default function Friends() {
     if (!confirm('Are you sure you want to remove this friend?')) return
 
     try {
-      const response = await fetch(`${API_BASE_URL}/friends/${friendId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      })
-
-      if (response.ok) {
+      await api.delete(`/friends/${friendId}`)
         toast.success('Friend removed')
         loadFriends()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to remove friend')
-      }
-    } catch (error) {
-      toast.error('Failed to remove friend')
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to remove friend')
     }
   }
 
@@ -309,6 +258,12 @@ export default function Friends() {
     </div>
   )
 
+  const InitialLoader = () => (
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
+    </div>
+  )
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
@@ -361,6 +316,10 @@ export default function Friends() {
       </div>
 
       {/* Tab Content */}
+      {loading && activeTab !== 'search' ? (
+        <InitialLoader />
+      ) : (
+        <>
       {activeTab === 'friends' && (
         <div className="space-y-4">
           {friends.length === 0 ? (
@@ -437,12 +396,13 @@ export default function Friends() {
                 searchUsers(e.target.value)
               }}
               className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                  disabled={loading && activeTab === 'search'}
             />
           </div>
 
           {/* Search Results */}
           <div className="space-y-4">
-            {loading && (
+                {loading && activeTab === 'search' && (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
                 <p className="text-gray-400 mt-4">Searching...</p>
@@ -461,6 +421,8 @@ export default function Friends() {
             ))}
           </div>
         </div>
+          )}
+        </>
       )}
     </div>
   )

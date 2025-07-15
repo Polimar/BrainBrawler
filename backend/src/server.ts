@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { createServer } from 'http';
 import { Server as SocketServer } from 'socket.io';
 import cors from 'cors';
@@ -13,22 +13,19 @@ import userRoutes from './routes/users';
 import gameRoutes from './routes/games';
 import questionRoutes from './routes/questions';
 import adsRoutes from './routes/ads';
+import friendsRoutes from './routes/friends';
+import premiumRoutes from './routes/premium';
+import shopRoutes from './routes/shop';
+import adminRoutes from './routes/admin';
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy
 const server = createServer(app);
 
 // Socket.IO setup with CORS
 const io = new SocketServer(server, {
   cors: {
-    origin: [
-      "http://localhost:3001",
-      "http://10.40.10.180:3001",
-      "http://10.40.10.180",
-      "https://www.brainbrawler.com",
-      // Mobile app origins
-      "http://10.0.2.2:3001",
-      "http://localhost:19006",
-    ],
+    origin: "*",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
@@ -45,15 +42,7 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: [
-    "http://localhost:3001",
-    "http://10.40.10.180:3001", 
-    "http://10.40.10.180",
-    "https://www.brainbrawler.com",
-    // Mobile app origins
-    "http://10.0.2.2:3001",
-    "http://localhost:19006",
-  ],
+  origin: "*",
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -75,17 +64,17 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Serve WebRTC test page
-app.get('/test', (req, res) => {
+app.get('/test', (req: Request, res: Response) => {
   res.sendFile('test-webrtc.html', { root: __dirname + '/..' });
 });
 
 // Root endpoint
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
   res.json({
     name: 'BrainBrawler Backend',
     version: '1.0.0',
@@ -101,15 +90,16 @@ app.get('/', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/games', gameRoutes);
+app.use('/api/games', gameRoutes(wsService));
 app.use('/api/questions', questionRoutes);
 app.use('/api/ads', adsRoutes);
-app.use('/api/friends', require('./routes/friends').default);
-app.use('/api/premium', require('./routes/premium').default);
-app.use('/api/shop', require('./routes/shop').default);
+app.use('/api/friends', friendsRoutes);
+app.use('/api/premium', premiumRoutes);
+app.use('/api/shop', shopRoutes);
+app.use('/api/admin', adminRoutes);
 
 // WebRTC Signaling endpoints
-app.post('/api/webrtc/create-room', async (req, res) => {
+app.post('/api/webrtc/create-room', async (req: Request, res: Response) => {
   try {
     const { gameId, hostUserId } = req.body;
     
@@ -151,7 +141,7 @@ app.post('/api/webrtc/create-room', async (req, res) => {
   }
 });
 
-app.get('/api/webrtc/ice-servers', (req, res) => {
+app.get('/api/webrtc/ice-servers', (req: Request, res: Response) => {
   // Return STUN/TURN servers for WebRTC connections
   res.json({
     iceServers: [
@@ -169,7 +159,7 @@ app.get('/api/webrtc/ice-servers', (req, res) => {
 });
 
 // Game statistics sync endpoint
-app.post('/api/games/:gameId/sync-stats', async (req, res) => {
+app.post('/api/games/:gameId/sync-stats', async (req: Request, res: Response) => {
   try {
     const { gameId } = req.params;
     const { finalStats, participants } = req.body;
@@ -247,7 +237,7 @@ async function calculateAverageScore(userId: string): Promise<number> {
 }
 
 // P2P Connection status endpoint
-app.get('/api/games/:gameId/p2p-status', (req, res) => {
+app.get('/api/games/:gameId/p2p-status', (req: Request, res: Response) => {
   const { gameId } = req.params;
   const room = wsService.getGameRoom(gameId);
   
@@ -275,7 +265,7 @@ app.get('/api/games/:gameId/p2p-status', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('Server error:', err);
   
   if (err.type === 'entity.parse.failed') {
@@ -289,7 +279,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use('*', (req: Request, res: Response) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 

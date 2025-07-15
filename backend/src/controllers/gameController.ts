@@ -1,137 +1,90 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
-import { generateGameCode } from '../utils/gameUtils';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { WebSocketService } from '../services/websocketService';
+import { generateGameCode } from '../utils/gameUtils';
 
-// Create a new P2P game
 export const createGame = async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user!.id;
+  console.log(`[Game Creation] Attempt by user: ${userId} (${req.user?.username})`);
+  console.log('[Game Creation] Received settings:', req.body);
+
   try {
     const { questionSetId, maxPlayers = 8, totalQuestions = 10, timePerQuestion = 30, isPrivate = false } = req.body;
-    const userId = req.user!.id;
 
-    // Verify user can create games (premium check)
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Only premium users can create games (per documentation)
-    if (user.accountType === 'FREE') {
-      return res.status(403).json({ error: 'Only premium users can create games' });
-    }
-
-    // Verify question set exists and user has access
     const questionSet = await prisma.questionSet.findFirst({
       where: {
         id: questionSetId,
         OR: [
           { isPublic: true },
           { ownerId: userId },
-          // User can access friend's premium question sets
           {
             owner: {
+              accountType: { in: ['PREMIUM', 'ADMIN'] },
               OR: [
-                {
-                  friendships1: {
-                    some: { user2Id: userId }
-                  }
-                },
-                {
-                  friendships2: {
-                    some: { user1Id: userId }
-                  }
-                }
+                { friendships1: { some: { user2Id: userId, status: 'ACCEPTED' } } },
+                { friendships2: { some: { user1Id: userId, status: 'ACCEPTED' } } }
               ]
             }
           }
         ]
       },
       include: {
-        questions: true
-      }
-    });
-
-    if (!questionSet) {
-      return res.status(404).json({ error: 'Question set not found or not accessible' });
-    }
-
-    if (questionSet.questions.length < totalQuestions) {
-      return res.status(400).json({ 
-        error: `Question set has only ${questionSet.questions.length} questions, but ${totalQuestions} requested` 
-      });
-    }
-
-    // Generate unique game code
-    const gameCode = await generateGameCode();
-
-    // Create the game
-    const game = await prisma.game.create({
-      data: {
-        code: gameCode,
-        questionSetId,
-        creatorId: userId,
-        maxPlayers,
-        totalQuestions,
-        timePerQuestion,
-        isPrivate,
-        isP2P: true,
-        currentHostId: userId, // Creator starts as host
-        inviteCode: isPrivate ? gameCode : undefined
-      },
-      include: {
-        questionSet: {
-          select: {
-            name: true,
-            description: true
-          }
-        },
-        creator: {
-          select: {
-            username: true,
-            accountType: true
-          }
+        _count: {
+          select: { questions: true }
         }
       }
     });
 
-    // Add creator as first participant and host
-    await prisma.gameParticipant.create({
+    if (!questionSet) {
+      console.error(`[Game Creation] Failed: Question set ${questionSetId} not found or user ${userId} lacks access.`);
+      return res.status(404).json({ error: 'Question set not found or you do not have access' });
+    }
+    
+    const availableQuestions = questionSet._count.questions;
+    if (availableQuestions < totalQuestions) {
+      return res.status(400).json({ 
+        error: `Question set has only ${availableQuestions} questions, but ${totalQuestions} were requested.` 
+      });
+    }
+
+    const gameCode = generateGameCode();
+
+    const game = await prisma.game.create({
       data: {
-        gameId: game.id,
-        userId,
-        isHost: true,
-        isReady: true
+        code: gameCode,
+        creatorId: userId, // Correct field name
+        questionSetId,
+        maxPlayers,
+        totalQuestions,
+        timePerQuestion,
+        isPrivate,
+        state: 'WAITING',
+        currentHostId: userId, // Creator is the first host
+        participants: {
+          create: {
+            userId: userId,
+            isReady: true,
+            isHost: true,
+          }
+        }
+      },
+      include: {
+        questionSet: { select: { name: true } },
       }
     });
 
-    res.status(201).json({
-      success: true,
-      game: {
-        id: game.id,
-        code: game.code,
-        questionSet: game.questionSet,
-        creator: game.creator,
-        maxPlayers: game.maxPlayers,
-        totalQuestions: game.totalQuestions,
-        timePerQuestion: game.timePerQuestion,
-        isPrivate: game.isPrivate,
-        isP2P: game.isP2P,
-        currentHostId: game.currentHostId,
-        state: game.state,
-        createdAt: game.createdAt
-      }
-    });
+    console.log(`[Game Creation] Successfully created game with id: ${game.id}`);
+    res.status(201).json({ success: true, game });
+
   } catch (error) {
-    console.error('Error creating game:', error);
-    res.status(500).json({ error: 'Failed to create game' });
+    console.error('[Game Creation] An unexpected error occurred:', error);
+    res.status(500).json({ error: 'Failed to create game due to a server error' });
   }
 };
 
 // Join an existing game
-export const joinGame = async (req: AuthenticatedRequest, res: Response) => {
+export const joinGame = async (req: AuthenticatedRequest, res: Response, wsService: WebSocketService) => {
   try {
     const { gameCode } = req.body;
     const userId = req.user!.id;
@@ -174,7 +127,7 @@ export const joinGame = async (req: AuthenticatedRequest, res: Response) => {
     }
 
     // Check if user is already in the game
-    const existingParticipant = game.participants.find(p => p.userId === userId);
+    const existingParticipant = game.participants.find((p: any) => p.userId === userId);
     if (existingParticipant) {
       return res.status(200).json({
         success: true,
@@ -183,7 +136,7 @@ export const joinGame = async (req: AuthenticatedRequest, res: Response) => {
           id: game.id,
           code: game.code,
           questionSet: game.questionSet,
-          participants: game.participants.map(p => ({
+          participants: game.participants.map((p: any) => ({
             id: p.userId,
             username: p.user.username,
             isHost: p.isHost,
@@ -210,7 +163,7 @@ export const joinGame = async (req: AuthenticatedRequest, res: Response) => {
       }
     });
 
-    // Get updated participant list
+    // Get updated participant list to broadcast
     const updatedGame = await prisma.game.findUnique({
       where: { id: game.id },
       include: {
@@ -227,6 +180,23 @@ export const joinGame = async (req: AuthenticatedRequest, res: Response) => {
         }
       }
     });
+    
+    // Broadcast player join event
+    wsService.broadcastToGame(game.id, 'player-joined', {
+      player: {
+        id: userId,
+        username: req.user!.username,
+        isHost: false,
+        isReady: false,
+      },
+      participants: updatedGame!.participants.map((p: any) => ({
+        id: p.userId,
+        username: p.user.username,
+        isHost: p.isHost,
+        isReady: p.isReady,
+        joinedAt: p.joinedAt
+      }))
+    });
 
     res.json({
       success: true,
@@ -235,7 +205,7 @@ export const joinGame = async (req: AuthenticatedRequest, res: Response) => {
         id: updatedGame!.id,
         code: updatedGame!.code,
         questionSet: game.questionSet,
-        participants: updatedGame!.participants.map(p => ({
+        participants: updatedGame!.participants.map((p: any) => ({
           id: p.userId,
           username: p.user.username,
           isHost: p.isHost,
@@ -295,7 +265,7 @@ export const getGame = async (req: AuthenticatedRequest, res: Response) => {
     }
 
     // Check if user is participant
-    const isParticipant = game.participants.some(p => p.userId === userId);
+    const isParticipant = game.participants.some((p: any) => p.userId === userId);
     if (!isParticipant) {
       return res.status(403).json({ error: 'Not authorized to view this game' });
     }
@@ -305,7 +275,7 @@ export const getGame = async (req: AuthenticatedRequest, res: Response) => {
         id: game.id,
         code: game.code,
         questionSet: game.questionSet,
-        participants: game.participants.map(p => ({
+        participants: game.participants.map((p: any) => ({
           id: p.userId,
           username: p.user.username,
           isHost: p.isHost,
@@ -336,8 +306,8 @@ export const getGame = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-// Start game (host only)
-export const startGame = async (req: AuthenticatedRequest, res: Response) => {
+// Start a game
+export const startGame = async (req: AuthenticatedRequest, res: Response, wsService: WebSocketService) => {
   try {
     const { gameId } = req.params;
     const userId = req.user!.id;
@@ -363,7 +333,7 @@ export const startGame = async (req: AuthenticatedRequest, res: Response) => {
     }
 
     // Check if all players are ready
-    const allReady = game.participants.every(p => p.isReady);
+    const allReady = game.participants.every((p: any) => p.isReady);
     if (!allReady) {
       return res.status(400).json({ error: 'Not all players are ready' });
     }
@@ -374,46 +344,33 @@ export const startGame = async (req: AuthenticatedRequest, res: Response) => {
     }
 
     // Update game state
-    await prisma.game.update({
+    const updatedGame = await prisma.game.update({
       where: { id: gameId },
       data: {
-        state: 'STARTING',
-        startedAt: new Date()
+        state: 'IN_PROGRESS',
+        startedAt: new Date(),
       }
     });
 
-    res.json({
-      success: true,
-      message: 'Game started successfully',
-      startedAt: new Date()
-    });
+    // Broadcast that the game has started
+    wsService.broadcastToGame(gameId, 'game-started', { game: updatedGame });
+
+    res.json({ success: true, message: 'Game started' });
   } catch (error) {
     console.error('Error starting game:', error);
     res.status(500).json({ error: 'Failed to start game' });
   }
 };
 
-// Update player readiness
-export const updatePlayerReady = async (req: AuthenticatedRequest, res: Response) => {
+// Update player ready status
+export const updatePlayerReady = async (req: AuthenticatedRequest, res: Response, wsService: WebSocketService) => {
   try {
     const { gameId } = req.params;
     const { isReady } = req.body;
     const userId = req.user!.id;
 
-    const participant = await prisma.gameParticipant.findUnique({
-      where: {
-        gameId_userId: {
-          gameId,
-          userId
-        }
-      }
-    });
-
-    if (!participant) {
-      return res.status(404).json({ error: 'Not a participant in this game' });
-    }
-
-    await prisma.gameParticipant.update({
+    // Update participant status
+    const participant = await prisma.gameParticipant.update({
       where: {
         gameId_userId: {
           gameId,
@@ -423,13 +380,16 @@ export const updatePlayerReady = async (req: AuthenticatedRequest, res: Response
       data: { isReady }
     });
 
-    res.json({
-      success: true,
+    // Broadcast the updated status
+    wsService.broadcastToGame(gameId, 'player-ready-update', {
+      userId,
       isReady
     });
+
+    res.json({ success: true, message: `Player status updated to ${isReady ? 'ready' : 'not ready'}` });
   } catch (error) {
     console.error('Error updating player ready status:', error);
-    res.status(500).json({ error: 'Failed to update ready status' });
+    res.status(500).json({ error: 'Failed to update player ready status' });
   }
 };
 
@@ -452,13 +412,13 @@ export const electNewHost = async (req: AuthenticatedRequest, res: Response) => 
     }
 
     // Verify requester is a participant
-    const isParticipant = game.participants.some(p => p.userId === userId);
+    const isParticipant = game.participants.some((p: any) => p.userId === userId);
     if (!isParticipant) {
       return res.status(403).json({ error: 'Not authorized' });
     }
 
     // Verify new host is a participant
-    const newHost = game.participants.find(p => p.userId === newHostId);
+    const newHost = game.participants.find((p: any) => p.userId === newHostId);
     if (!newHost) {
       return res.status(400).json({ error: 'New host is not a participant' });
     }
@@ -539,157 +499,71 @@ export const updateConnectionInfo = async (req: AuthenticatedRequest, res: Respo
   }
 };
 
-// Leave game
-export const leaveGame = async (req: AuthenticatedRequest, res: Response) => {
+// Leave a game
+export const leaveGame = async (req: AuthenticatedRequest, res: Response, wsService: WebSocketService) => {
   try {
     const { gameId } = req.params;
     const userId = req.user!.id;
 
-    const game = await prisma.game.findUnique({
-      where: { id: gameId },
-      include: {
-        participants: true
-      }
+    // Check if the user is in the game
+    const participant = await prisma.gameParticipant.findUnique({
+      where: {
+        gameId_userId: {
+          gameId,
+          userId,
+        },
+      },
     });
 
-    if (!game) {
-      return res.status(404).json({ error: 'Game not found' });
-    }
-
-    const participant = game.participants.find(p => p.userId === userId);
     if (!participant) {
-      return res.status(404).json({ error: 'Not a participant in this game' });
+      return res.status(404).json({ error: 'You are not in this game' });
     }
 
-    // If this is the host and there are other players, we need to elect a new host
-    const wasHost = participant.isHost;
-    const otherParticipants = game.participants.filter(p => p.userId !== userId);
-
-    if (wasHost && otherParticipants.length > 0) {
-      // Elect first remaining participant as new host
-      const newHostId = otherParticipants[0].userId;
-      
-      await prisma.hostElection.create({
-        data: {
-          gameId,
-          previousHostId: userId,
-          newHostId,
-          electionReason: 'host_left',
-          candidateIds: [newHostId]
-        }
-      });
-
-      await prisma.game.update({
-        where: { id: gameId },
-        data: { currentHostId: newHostId }
-      });
-
-      await prisma.gameParticipant.update({
-        where: {
-          gameId_userId: {
-            gameId,
-            userId: newHostId
-          }
-        },
-        data: { isHost: true }
-      });
-    }
-
-    // Remove participant
+    // Remove the participant
     await prisma.gameParticipant.delete({
       where: {
         gameId_userId: {
           gameId,
-          userId
-        }
-      }
+          userId,
+        },
+      },
     });
 
-    // If no participants left, mark game as cancelled
-    if (otherParticipants.length === 0) {
-      await prisma.game.update({
-        where: { id: gameId },
-        data: { 
-          state: 'CANCELLED',
-          endedAt: new Date()
-        }
-      });
-    }
+    // Broadcast player leave event
+    wsService.broadcastToGame(gameId, 'player-left', { userId });
 
-    res.json({
-      success: true,
-      message: 'Left game successfully',
-      newHostId: wasHost && otherParticipants.length > 0 ? otherParticipants[0].userId : undefined
-    });
+    res.json({ success: true, message: 'You have left the game' });
   } catch (error) {
     console.error('Error leaving game:', error);
     res.status(500).json({ error: 'Failed to leave game' });
   }
 };
 
-// Get available games to join
+// Get all available public games
 export const getAvailableGames = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const games = await prisma.game.findMany({
       where: {
+        isPrivate: false,
         state: 'WAITING',
-        isPrivate: false
       },
       include: {
-        participants: {
-          include: {
-            user: {
-              select: {
-                username: true,
-                accountType: true
-              }
-            }
-          }
-        },
-        questionSet: {
-          select: {
-            name: true,
-            category: true,
-            difficulty: true
-          }
-        },
-        creator: {
-          select: {
-            username: true,
-            accountType: true
-          }
-        }
+        creator: { select: { username: true } },
+        participants: { select: { userId: true } },
+        questionSet: { select: { name: true, category: true, difficulty: true } },
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'desc',
       },
-      take: 20 // Limit to recent 20 games
+      take: 50,
     });
 
-    const availableGames = games
-      .filter(game => game.participants.length < game.maxPlayers)
-      .map(game => ({
-        id: game.id,
-        code: game.code,
-        creator: game.creator,
-        questionSet: game.questionSet,
-        currentPlayers: game.participants.length,
-        maxPlayers: game.maxPlayers,
-        totalQuestions: game.totalQuestions,
-        timePerQuestion: game.timePerQuestion,
-        isP2P: game.isP2P,
-        createdAt: game.createdAt,
-        participants: game.participants.map(p => ({
-          username: p.user.username,
-          isHost: p.isHost,
-          isReady: p.isReady
-        }))
-      }));
+    const gamesWithParticipantCount = games.map((game: any) => ({
+      ...game,
+      participantCount: game.participants.length,
+    }));
 
-    res.json({
-      games: availableGames,
-      total: availableGames.length
-    });
+    res.json({ games: gamesWithParticipantCount });
   } catch (error) {
     console.error('Error getting available games:', error);
     res.status(500).json({ error: 'Failed to get available games' });

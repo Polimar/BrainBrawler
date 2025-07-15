@@ -50,12 +50,11 @@ export const createCustomQuestionSet = async (req: AuthenticatedRequest, res: Re
           data: {
             questionSetId: questionSet.id,
             text: q.question,
-            options: JSON.stringify(q.options),
-            correctAnswer: q.correctAnswer,
+            options: q.options, // Already an array of strings
+            correctAnswer: q.correctAnswer, // Now an index
             explanation: q.explanation,
-            timeLimit: 30,
-            points: 100,
-            order: index + 1
+            difficulty: difficulty || 'MEDIUM',
+            category: category || 'CUSTOM',
           }
         })
       )
@@ -81,15 +80,16 @@ async function generateQuestionsWithLLM(topic: string, count: number, difficulty
   
   const mockQuestions = [];
   for (let i = 0; i < count; i++) {
+    const options = [
+      `Option A about ${topic}`,
+      `Option B about ${topic}`,
+      `Option C about ${topic}`,
+      `Option D about ${topic}`
+    ];
     mockQuestions.push({
       question: `What is a ${difficultyLevel} concept related to ${topic}? (Question ${i + 1})`,
-      options: [
-        `Option A about ${topic}`,
-        `Option B about ${topic}`,
-        `Option C about ${topic}`,
-        `Option D about ${topic}`
-      ],
-      correctAnswer: `Option A about ${topic}`,
+      options: options,
+      correctAnswer: Math.floor(Math.random() * options.length), // Return a random index
       explanation: `This is the correct answer because it accurately describes ${topic} at ${difficultyLevel} level.`
     });
   }

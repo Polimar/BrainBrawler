@@ -31,6 +31,11 @@ const Layout: React.FC = () => {
     { path: '/app/leaderboard', label: 'Leaderboard', icon: '🏆' },
   ]
 
+  const isAdmin = user?.accountType === 'ADMIN'
+  if (isAdmin) {
+    navItems.push({ path: '/app/admin', label: 'Admin Panel', icon: '🛠️' })
+  }
+
   const isPremium = user?.accountType === 'PREMIUM' || user?.accountType === 'ADMIN'
 
   return (

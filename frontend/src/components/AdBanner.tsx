@@ -9,196 +9,56 @@ interface AdBannerProps {
   className?: string
 }
 
-interface AdConfig {
-  showAds: boolean
-  adConfig: {
-    bannerFrequency: string
-    adUnits: {
-      banner: string
-      interstitial: string
-      rewarded: string
-    }
-    placement: {
-      lobby: string[]
-      game: string[]
-      results: string[]
-    }
-  } | null
-}
-
 const AdBanner: React.FC<AdBannerProps> = ({ placement, className = '' }) => {
   const user = useSelector((state: RootState) => state.auth.user)
-  const [adConfig, setAdConfig] = useState<AdConfig | null>(null)
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false)
+  const [adConfig, setAdConfig] = useState<any>(null)
 
   useEffect(() => {
     if (user && user.accountType === 'FREE') {
-      loadAdConfig()
+      api.get('/ads/config')
+        .then(response => setAdConfig(response.data.adConfig))
+        .catch(error => console.error('Failed to load ad config', error))
     }
   }, [user])
 
-  const loadAdConfig = async () => {
-    try {
-      const response = await api.get('/ads/config')
-      setAdConfig(response.data)
-    } catch (error) {
-      console.error('Error loading ad config:', error)
-    }
-  }
-
-  const trackAdImpression = async () => {
-    if (!adConfig?.showAds) return
-
-    try {
-      const response = await api.post('/ads/impression', {
-        adType: 'BANNER',
-        adUnit: adConfig.adConfig?.adUnits.banner,
-        placement
-      })
-
-      if (response.data.showUpgradePrompt) {
-        setShowUpgradePrompt(true)
-      }
-    } catch (error) {
-      console.error('Error tracking ad impression:', error)
-    }
-  }
-
-  const handleAdClick = async () => {
-    if (!adConfig?.showAds) return
-
-    try {
-      const response = await api.post('/ads/click', {
-        adType: 'BANNER',
-        adUnit: adConfig.adConfig?.adUnits.banner
-      })
-
-      if (response.data.earnedCoins > 0) {
-        toast.success(`+${response.data.earnedCoins} coins earned!`)
-      }
-
-      if (response.data.showUpgradePrompt) {
-        setShowUpgradePrompt(true)
-      }
-
-      // Simulate ad click behavior
-      window.open('https://example.com/sample-ad', '_blank')
-    } catch (error) {
-      console.error('Error tracking ad click:', error)
-    }
-  }
-
-  const handleUpgrade = () => {
-    setShowUpgradePrompt(false)
-    // Navigate to premium upgrade page
-    window.location.href = '/premium'
-  }
-
-  // Don't show ads for premium users
-  if (!user || user.accountType !== 'FREE' || !adConfig?.showAds) {
+  // Don't show ads for premium users or if config is not loaded
+  if (!user || user.accountType !== 'FREE' || !adConfig) {
     return null
   }
 
-  // Check if ads should be shown for this placement
-  if (!adConfig.adConfig?.placement[placement]?.includes('banner')) {
-    return null
+  // TODO: Replace this with the actual Advanced Native Ad implementation
+  // using the Google Mobile Ads SDK or Google Publisher Tag (GPT) for web.
+  // The necessary ad unit IDs are provided in the adConfig object.
+  // adConfig.sdkConfig.appId: 'ca-app-pub-8145977851051737~8523227896'
+  // adConfig.sdkConfig.nativeAdUnitId: 'ca-app-pub-8145977851051737/1115511164'
+  
+  const handleAdClick = () => {
+    // This should be handled by the ad SDK, which will track clicks.
+    // The API call below is for backend tracking.
+    api.post('/ads/click', {
+      adType: 'NATIVE_ADVANCED',
+      adUnit: adConfig.sdkConfig.nativeAdUnitId,
+      placement
+    }).catch(error => console.error('Failed to track ad click', error));
+    toast.success("Thanks for supporting us!");
   }
 
   return (
-    <>
-      {/* Ad Banner */}
-      <div className={`glass-card p-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/30 ${className}`}>
-        <div 
-          className="cursor-pointer transition-transform hover:scale-105"
-          onClick={handleAdClick}
-          onLoad={trackAdImpression}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="text-2xl">🎮</div>
-              <div>
-                <h3 className="text-white font-bold text-sm">Play More Games!</h3>
-                <p className="text-yellow-300 text-xs">Click to discover new gaming experiences</p>
-              </div>
-            </div>
-            <div className="text-xs text-yellow-400 bg-yellow-500/20 px-2 py-1 rounded">
-              AD
-            </div>
-          </div>
-          
-          {/* Sample ad content */}
-          <div className="mt-3 p-3 bg-white/10 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-white text-sm font-medium">🎯 Gaming Gear Sale</span>
-              <span className="text-yellow-400 text-sm">Up to 50% OFF</span>
-            </div>
-            <p className="text-gray-300 text-xs mt-1">Premium gaming accessories for pro players</p>
-          </div>
-        </div>
-        
-        {/* Remove ads prompt */}
-        <div className="mt-3 pt-3 border-t border-white/10">
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs">Remove ads with Premium</span>
-            <button 
-              onClick={handleUpgrade}
-              className="text-yellow-400 hover:text-yellow-300 text-xs font-bold transition-colors"
-            >
-              UPGRADE →
-            </button>
-          </div>
-        </div>
+    <div className={`glass-card p-4 bg-yellow-900/30 border-yellow-500/30 ${className}`}>
+      <div className="flex items-center justify-between text-xs text-yellow-400 mb-2">
+        <span>Advertisement</span>
       </div>
-
-      {/* Upgrade Prompt Modal */}
-      {showUpgradePrompt && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="glass-card p-6 max-w-md w-full mx-4">
-            <div className="text-center">
-              <div className="text-4xl mb-4">👑</div>
-              <h2 className="text-2xl font-bold text-white mb-2">Upgrade to Premium</h2>
-              <p className="text-gray-300 mb-6">
-                Enjoy an ad-free experience, create custom games, and access premium features!
-              </p>
-              
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center text-green-400 text-sm">
-                  <span className="mr-2">✓</span>
-                  <span>No advertisements</span>
-                </div>
-                <div className="flex items-center text-green-400 text-sm">
-                  <span className="mr-2">✓</span>
-                  <span>Create custom games</span>
-                </div>
-                <div className="flex items-center text-green-400 text-sm">
-                  <span className="mr-2">✓</span>
-                  <span>Build custom question sets</span>
-                </div>
-                <div className="flex items-center text-green-400 text-sm">
-                  <span className="mr-2">✓</span>
-                  <span>Priority support</span>
-                </div>
-              </div>
-
-              <div className="flex space-x-3">
-                <button 
-                  onClick={() => setShowUpgradePrompt(false)}
-                  className="btn-ghost flex-1"
-                >
-                  Maybe Later
-                </button>
-                <button 
-                  onClick={handleUpgrade}
-                  className="btn-primary flex-1"
-                >
-                  Upgrade Now
+      <div 
+        className="cursor-pointer"
+        onClick={handleAdClick}
+      >
+        <h3 className="font-bold text-white">Your Ad Title Here</h3>
+        <p className="text-gray-300 text-sm">This is where the native ad content would be rendered by the Google Ads SDK.</p>
+        <button className="text-xs bg-yellow-500 text-black px-2 py-1 rounded mt-2">
+          Learn More
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-    </>
   )
 }
 

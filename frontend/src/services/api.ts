@@ -1,13 +1,9 @@
-import axios from 'axios'
+import axios, { InternalAxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
+import { store } from '../store/store'; // Import the Redux store
 
-// Auto-detect the backend URL based on current location
+// The Vite proxy will handle redirecting this to the correct backend service
 const getApiBaseUrl = () => {
-  if (typeof window !== 'undefined') {
-    const protocol = window.location.protocol // 'https:' or 'http:'
-    const hostname = window.location.hostname
-    return `${protocol}//${hostname}/api`
-  }
-  return 'http://localhost:3000/api'
+  return '/api'
 }
 
 export const api = axios.create({
@@ -19,24 +15,28 @@ export const api = axios.create({
 
 // Add request interceptor to include auth token
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('brainbrawler_token')
+  (config: InternalAxiosRequestConfig) => {
+    // Get token from Redux store instead of localStorage
+    const token = store.getState().auth.token;
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return config
+    return config;
   },
-  (error) => Promise.reject(error)
-)
+  (error: AxiosError) => Promise.reject(error)
+);
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('brainbrawler_token')
-      window.location.href = '/auth'
+      // Still good practice to clear local storage on 401
+      localStorage.removeItem('brainbrawler_token');
+      // Redirect or dispatch a logout action
+      // For simplicity, redirecting. A dispatched action would be cleaner.
+      window.location.href = '/auth';
     }
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-) 
+); 

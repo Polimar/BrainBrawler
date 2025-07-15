@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../store/store'
+import { api } from '../services/api'
 import { 
   Plus,
   BookOpen,
@@ -58,34 +59,32 @@ export default function QuestionSets() {
     questionCount: 10
   })
 
-  const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}/api`
-
-  const getAuthHeaders = () => ({
-    'Authorization': `Bearer ${localStorage.getItem('brainbrawler_token')}`,
-    'Content-Type': 'application/json'
-  })
-
   const isPremium = user?.accountType === 'PREMIUM' || user?.accountType === 'ADMIN'
 
   useEffect(() => {
+    if (isPremium) {
     loadQuestionSets()
-  }, [])
+    }
+  }, [isPremium])
 
   const loadQuestionSets = async () => {
-    try {
       setLoading(true)
-      const response = await fetch(`${API_BASE_URL}/question-sets`, {
-        headers: getAuthHeaders()
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setQuestionSets(data.questionSets || [])
-      }
+    try {
+      const response = await api.get('/questions/sets')
+      setQuestionSets(response.data || [])
     } catch (error) {
       console.error('Error loading question sets:', error)
+      toast.error('Failed to load question sets')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCreateSubmit = () => {
+    if (showLLMModal) {
+      generateQuestionsWithLLM()
+    } else {
+      createQuestionSetManually()
     }
   }
 
@@ -95,31 +94,17 @@ export default function QuestionSets() {
       return
     }
 
+    setGeneratingQuestions(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/premium/question-sets`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(createData)
-      })
-
-      if (response.ok) {
+      await api.post('/questions/sets', createData)
         toast.success('Question set created successfully!')
         setShowCreateModal(false)
-        setCreateData({
-          name: '',
-          description: '',
-          category: 'GENERAL',
-          difficulty: 'MEDIUM',
-          topic: '',
-          questionCount: 10
-        })
+      resetCreateData()
         loadQuestionSets()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to create question set')
-      }
-    } catch (error) {
-      toast.error('Failed to create question set')
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to create question set')
+    } finally {
+      setGeneratingQuestions(false)
     }
   }
 
@@ -131,33 +116,13 @@ export default function QuestionSets() {
 
     setGeneratingQuestions(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/premium/question-sets`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          ...createData,
-          useAI: true
-        })
-      })
-
-      if (response.ok) {
+      await api.post('/premium/question-sets', createData)
         toast.success('Questions generated successfully!')
         setShowLLMModal(false)
-        setCreateData({
-          name: '',
-          description: '',
-          category: 'GENERAL',
-          difficulty: 'MEDIUM',
-          topic: '',
-          questionCount: 10
-        })
+      resetCreateData()
         loadQuestionSets()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to generate questions')
-      }
-    } catch (error) {
-      toast.error('Failed to generate questions')
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to generate questions')
     } finally {
       setGeneratingQuestions(false)
     }
@@ -167,21 +132,23 @@ export default function QuestionSets() {
     if (!confirm('Are you sure you want to delete this question set?')) return
 
     try {
-      const response = await fetch(`${API_BASE_URL}/question-sets/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      })
-
-      if (response.ok) {
+      await api.delete(`/questions/sets/${id}`)
         toast.success('Question set deleted')
         loadQuestionSets()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to delete question set')
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to delete question set')
       }
-    } catch (error) {
-      toast.error('Failed to delete question set')
-    }
+  }
+
+  const resetCreateData = () => {
+    setCreateData({
+      name: '',
+      description: '',
+      category: 'GENERAL',
+      difficulty: 'MEDIUM',
+      topic: '',
+      questionCount: 10
+    })
   }
 
   const getDifficultyColor = (difficulty: string) => {
@@ -402,10 +369,18 @@ export default function QuestionSets() {
                 Cancel
               </button>
               <button
-                onClick={createQuestionSetManually}
+                onClick={handleCreateSubmit}
+                disabled={generatingQuestions}
                 className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
-                Create
+                {generatingQuestions ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <span>Create</span>
+                )}
               </button>
             </div>
           </div>
@@ -483,7 +458,7 @@ export default function QuestionSets() {
                 Cancel
               </button>
               <button
-                onClick={generateQuestionsWithLLM}
+                onClick={handleCreateSubmit}
                 disabled={generatingQuestions}
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
               >

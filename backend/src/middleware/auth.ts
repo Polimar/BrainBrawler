@@ -2,7 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/database';
 
-export interface AuthenticatedRequest extends Request {
+// Define types locally to avoid import issues
+export interface JWTPayload {
+  userId: string;
+  // Add other properties from the JWT payload if they exist
+}
+
+export interface AuthenticatedRequest<B = any, P = any, Q = any> extends Request<P, any, B, Q> {
   user?: {
     id: string;
     email: string;
@@ -11,23 +17,20 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-export interface JWTPayload {
-  userId: string;
-  email: string;
-  username: string;
-  accountType: string;
-}
 
 export const authenticateToken = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  console.log('Authenticating request for:', req.path);
   try {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    console.log('Received token:', token ? 'Token present' : 'No token');
 
     if (!token) {
+      console.log('Authentication failed: No token provided.');
       res.status(401).json({ error: 'Access token required' });
       return;
     }
@@ -41,6 +44,7 @@ export const authenticateToken = async (
 
     // Verify JWT token
     const decoded = jwt.verify(token, jwtSecret) as JWTPayload;
+    console.log('Token decoded for userId:', decoded.userId);
     
     // Verify user still exists
     const user = await prisma.user.findUnique({
@@ -55,10 +59,12 @@ export const authenticateToken = async (
     });
 
     if (!user) {
+      console.log('Authentication failed: User not found for id', decoded.userId);
       res.status(401).json({ error: 'Invalid or expired token' });
       return;
     }
 
+    console.log('Token verified successfully for user:', user.username);
     // Attach user info to request
     req.user = {
       id: user.id,
@@ -69,6 +75,7 @@ export const authenticateToken = async (
 
     next();
   } catch (error) {
+    console.error('Auth middleware error:', error);
     if (error instanceof jwt.JsonWebTokenError) {
       res.status(401).json({ error: 'Invalid token' });
       return;
@@ -78,7 +85,6 @@ export const authenticateToken = async (
       return;
     }
     
-    console.error('Auth middleware error:', error);
     res.status(500).json({ error: 'Authentication error' });
   }
 };

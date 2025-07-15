@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RootState } from '../store/store'
+import { api } from '../services/api'
 import { 
   GamepadIcon,
   Users,
@@ -62,53 +63,41 @@ export default function CreateGame() {
     isPrivate: false
   })
 
-  const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}/api`
-
-  const getAuthHeaders = () => ({
-    'Authorization': `Bearer ${localStorage.getItem('brainbrawler_token')}`,
-    'Content-Type': 'application/json'
-  })
-
-  const isPremium = user?.accountType === 'PREMIUM' || user?.accountType === 'ADMIN'
-
   useEffect(() => {
-    if (isPremium) {
       loadData()
-    }
-  }, [isPremium])
+  }, [])
 
   const loadData = async () => {
+    setLoading(true)
     try {
-      setLoading(true)
       const [questionSetsResponse, friendsResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/question-sets`, { headers: getAuthHeaders() }),
-        fetch(`${API_BASE_URL}/friends`, { headers: getAuthHeaders() })
+        api.get('/questions/sets'),
+        api.get('/friends')
       ])
 
-      if (questionSetsResponse.ok) {
-        const questionSetsData = await questionSetsResponse.json()
-        setQuestionSets(questionSetsData.questionSets || [])
+      if (questionSetsResponse.data) {
+        setQuestionSets(questionSetsResponse.data || [])
         // Auto-select first available question set
-        if (questionSetsData.questionSets?.length > 0) {
-          setSettings(prev => ({ 
+        if (questionSetsResponse.data?.length > 0) {
+          setSettings((prev: GameSettings) => ({ 
             ...prev, 
-            questionSetId: questionSetsData.questionSets[0].id 
+            questionSetId: questionSetsResponse.data[0].id 
           }))
         }
       }
 
-      if (friendsResponse.ok) {
-        const friendsData = await friendsResponse.json()
-        setFriends(friendsData.friends || [])
+      if (friendsResponse.data) {
+        setFriends(friendsResponse.data.friends || [])
       }
     } catch (error) {
       console.error('Error loading data:', error)
+      toast.error('Failed to load initial data')
     } finally {
       setLoading(false)
     }
   }
 
-  const createGame = async () => {
+  const handleCreateGame = async () => {
     if (!settings.questionSetId) {
       toast.error('Please select a question set')
       return
@@ -116,15 +105,10 @@ export default function CreateGame() {
 
     setCreating(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/games`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(settings)
-      })
+      const response = await api.post('/games/create', settings)
 
-      if (response.ok) {
-        const data = await response.json()
-        setGameCreated(data.game)
+      if (response.data.success) {
+        setGameCreated(response.data.game)
         toast.success('Game created successfully!')
         
         // Send invitations to selected friends
@@ -132,11 +116,10 @@ export default function CreateGame() {
           await sendInvitations()
         }
       } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to create game')
+        toast.error(response.data.error || 'Failed to create game')
       }
-    } catch (error) {
-      toast.error('Failed to create game')
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to create game')
     } finally {
       setCreating(false)
     }
@@ -163,9 +146,29 @@ export default function CreateGame() {
     }
   }
 
-  const selectedQuestionSet = questionSets.find(qs => qs.id === settings.questionSetId)
+  const selectedQuestionSet = questionSets.find((qs: QuestionSet) => qs.id === settings.questionSetId)
 
-  if (!isPremium) {
+  if (!user) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="text-center py-12">
+          <Lock size={64} className="mx-auto text-gray-600 mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-4">Login Required</h1>
+          <p className="text-gray-400 mb-6">
+            Please log in to create games.
+          </p>
+          <button 
+            onClick={() => navigate('/app/login')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors mr-4"
+          >
+            Login
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user?.accountType || user.accountType === 'FREE') {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-12">
@@ -468,10 +471,12 @@ export default function CreateGame() {
             </div>
 
             {/* Create Game Button */}
+            <div className="bg-gray-800 p-4 rounded-xl border-2 border-gray-700">
+              <h2 className="text-xl font-bold text-white mb-4">Final Step: Create Game</h2>
             <button
-              onClick={createGame}
-              disabled={creating || !settings.questionSetId}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-600 text-white px-6 py-4 rounded-xl font-semibold transition-all disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                onClick={handleCreateGame}
+                disabled={creating}
+                className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white px-6 py-4 rounded-lg font-semibold hover:from-green-600 hover:to-teal-600 transition-all text-lg flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               {creating ? (
                 <>
@@ -480,11 +485,12 @@ export default function CreateGame() {
                 </>
               ) : (
                 <>
-                  <GamepadIcon size={20} />
-                  <span>Create Game</span>
+                    <GamepadIcon size={22} />
+                    <span>Create Game Now</span>
                 </>
               )}
             </button>
+            </div>
           </div>
         </div>
       )}
